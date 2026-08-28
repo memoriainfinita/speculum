@@ -79,6 +79,11 @@ public class LauncherForm : Form
     private Label lblLog;
     private TextBox txtLog;
 
+    // El servidor adb es un demonio unico de la maquina: puede estar en uso por Android
+    // Studio, otra terminal u otra ventana de esta app. Solo se detiene al salir si lo
+    // arranco esta sesion, para dejar el sistema como se encontro.
+    private bool adbYaEstaba;
+
     public LauncherForm()
     {
         Text = "scrcpy Launcher";
@@ -168,7 +173,14 @@ public class LauncherForm : Form
         };
         Controls.Add(txtLog);
 
-        Load += (s, e) => Refrescar();
+        Load += (s, e) =>
+        {
+            // Antes de Refrescar(), que consulta adb y por tanto lo arrancaria.
+            adbYaEstaba = Process.GetProcessesByName("adb").Length > 0;
+            Refrescar();
+        };
+
+        FormClosing += (s, e) => DetenerAdbSiLoArrancamos();
     }
 
     private void ConstruirTabBasico()
@@ -622,7 +634,11 @@ public class LauncherForm : Form
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                // El servidor adb queda vivo como demonio y retiene un handle sobre el
+                // directorio desde el que se lanzo, impidiendo renombrarlo o moverlo
+                // hasta que muera. Con el cwd en temp, el pinchazo cae donde no molesta.
+                WorkingDirectory = Path.GetTempPath()
             };
 
             // Los dos streams se leen a la vez, no uno detras de otro: leyendo stdout
@@ -809,7 +825,7 @@ public class LauncherForm : Form
 
             string flags = BuildFlags();
             Log("Lanzando: scrcpy " + flags);
-            var psi = new ProcessStartInfo("scrcpy", flags) { UseShellExecute = false, CreateNoWindow = true };
+            var psi = new ProcessStartInfo("scrcpy", flags) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetTempPath() };
             Process.Start(psi);
         }
         catch (Exception ex)
@@ -836,6 +852,17 @@ public class LauncherForm : Form
         Log(RunCommandSync("adb", "kill-server"));
         Log(RunCommandSync("adb", "start-server"));
         Refrescar();
+    }
+
+    // Al salir, solo se detiene el servidor adb si lo arranco esta sesion y no queda
+    // ningun scrcpy usandolo. Si ya estaba corriendo al abrir la app, se deja intacto:
+    // es un demonio compartido y no es nuestro.
+    private void DetenerAdbSiLoArrancamos()
+    {
+        if (adbYaEstaba) return;
+        if (Process.GetProcessesByName("scrcpy").Length > 0) return;
+        if (Process.GetProcessesByName("adb").Length == 0) return;
+        try { RunCommandSync("adb", "kill-server", 5000); } catch { }
     }
 
     private void CerrarAdb()

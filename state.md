@@ -76,6 +76,20 @@ PowerShell 7/pwsh — solo funciona en Windows PowerShell 5.1 clásico. Por eso 
 - **Preset de "baja latencia WiFi"**: rellena los campos de bitrate/tamaño/fps en la
   pestaña Avanzado en vez de aplicar flags ocultos, para que no haya duplicados ni magia
   invisible — todo lo que se envía a scrcpy es visible y editable en los campos.
+- **Directorio de trabajo de los procesos hijos en `%TEMP%`**: sin `WorkingDirectory`, el
+  hijo hereda el cwd del launcher, y el servidor adb se queda con un handle abierto sobre
+  esa carpeta mientras siga vivo. Siendo una app portable, eso pincha la carpeta del propio
+  `.exe`: el usuario no puede moverla, renombrarla ni expulsar el USB, sin ninguna pista de
+  por qué. Se fija `WorkingDirectory = Path.GetTempPath()` en los dos `ProcessStartInfo`.
+  Ninguna ruta de la app depende del cwd: `Grabaciones` se resuelve con
+  `AppDomain.CurrentDomain.BaseDirectory`.
+- **El servidor adb solo se detiene al salir si lo arrancó la app**: adb es un demonio único
+  de la máquina y puede estar en uso por Android Studio, otra terminal u otra ventana del
+  launcher, así que matarlo incondicionalmente sería apagar algo ajeno. `adbYaEstaba` se
+  calcula en el `Load` del formulario, antes de `Refrescar()` (que consulta adb y por tanto
+  lo arrancaría), y `FormClosing` hace `kill-server` solo si la app lo arrancó y no queda
+  ningún scrcpy abierto. Verificado en las dos ramas: con adb parado de inicio, se detiene
+  al cerrar; con adb ya corriendo, sigue vivo tras cerrar.
 
 ## Contexto de depuración relevante (por si reaparece)
 - Hubo un problema de conexión WiFi que **no era de scrcpy**: Tailscale tenía instalada una
@@ -138,10 +152,11 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   menús `.bat`, que se movieron ahí por estar superados por la interfaz gráfica),
   `ScrcpyLauncher.exe` y la carpeta `Grabaciones/`. El README avisa de que el binario no
   está en el repo y hay que descargarlo de las releases o compilarlo.
-- [ ] **Renombrar la carpeta a `scrcpy-launcher`.** Decidido, pero no se pudo hacer: la
-  sesión de Claude Code que trabajaba dentro bloqueaba el directorio (`claude.exe` y su
-  `pwsh.exe` lo retienen). Hay que hacerlo desde una sesión que no tenga esa carpeta como
-  directorio de trabajo. No afecta a git.
+- [x] **Renombrar la carpeta a `scrcpy-launcher`.** Hecho 2026-08-28. No afecta a git.
+  Lo que lo impedía era `adb.exe`: el servidor queda vivo como demonio y retiene un handle
+  sobre el directorio desde el que se lanzó, y sobrevive a la sesión que lo arrancó. Se
+  libera con `adb kill-server`. Claude Code también abre handles sobre la carpeta mientras
+  trabaja en ella, pero esos se sueltan al cerrar la sesión.
 - [ ] **Publicar el repo en GitHub** como `scrcpy-launcher`, y adjuntar el `.exe` a una
   release en vez de versionarlo.
 - [ ] **Pasar la app a inglés.** Toda la interfaz está en español: etiquetas, pestañas,
