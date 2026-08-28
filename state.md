@@ -10,12 +10,13 @@ interface is called `wlan0`. Also fixed that child processes inherited the launc
 working directory, which left the adb server holding the folder of the `.exe` and blocking
 any attempt to move or rename it. See TODO and Design decisions.
 
-Interface translated to English on 2026-08-28, source code included. Repo still to be made
-public.
+Translated to English on 2026-08-28: the interface, the source code, the README and this
+file. `tools/make-icon.ps1` followed on 2026-08-29, which leaves nothing in Spanish in the
+repo. Repo still to be made public.
 
 Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
-2026-08-28 (it was not on the machine), and a <test-phone> (<codename>, Android 15) over
-USB.
+2026-08-28 (it was not on the machine), and the test phone over USB — a MediaTek based
+Android 15 device, which is what makes the interface naming below relevant.
 
 Verified against that real scrcpy 4.1, not against documentation: the 20 flags added do
 exist, and the 30 long and 12 short flags the app already used are still valid — none has
@@ -31,7 +32,7 @@ while it works perfectly from the command line, there is no comfortable way to l
 stop it, record, or connect over WiFi without typing commands every time.
 
 The name: `speculum` is Latin for mirror, which is literally what the tool does. It follows
-the <workspace> convention of naming projects with a real Latin noun.
+the convention of naming these projects with a real Latin noun.
 
 ## File layout (this folder)
 - `Speculum.cs` — C# source (WinForms). A single file, with no external dependencies
@@ -133,10 +134,10 @@ Note for scripted builds: run it from PowerShell, not from Git Bash. Git Bash re
 
 ## Relevant debugging context (in case it comes back)
 - There was a WiFi connection problem that was **not scrcpy's**: Tailscale had installed a
-  route capturing the traffic towards the local network (`<lan-subnet>`) and sending it
-  through the VPN tunnel instead of out over direct WiFi. If WiFi pairing fails with a
-  timeout even though the phone and the PC are on the same network, check `Get-NetRoute` in
-  case Tailscale (or another VPN) is hijacking that subnet.
+  route capturing the traffic towards the local subnet and sending it through the VPN tunnel
+  instead of out over direct WiFi. If WiFi pairing fails with a timeout even though the
+  phone and the PC are on the same network, check `Get-NetRoute` in case Tailscale (or
+  another VPN) is hijacking that subnet.
 - A weak WiFi signal (RSSI below -75/-80 dBm) causes audio/video dropouts even with the
   connection established — that is not a bug, it is radio physics. The 2.4GHz network
   usually reaches further than the 5GHz one at the same distance.
@@ -179,11 +180,11 @@ Found in the code review of 2026-08-28, before publishing the repo.
   2026-08-28.
 
   The first version filtered by interface name (`rmnet`, `dummy`, `tun`) and **failed when
-  tested against the real phone**: a <test-phone> with WiFi off has no `wlan0`, and
-  its data interfaces are `ccmni0`/`ccmni1` — that is what they are called on MediaTek
-  modems, while `rmnet` is the Qualcomm name. It returned `<cgnat-ip>`, an address in
-  the carrier CGNAT range (100.64.0.0/10) unreachable from the LAN: exactly the mistake the
-  filter was meant to prevent.
+  tested against the real phone**: the test phone with WiFi off has no `wlan0`, and its data
+  interfaces are `ccmni0`/`ccmni1` — that is what they are called on MediaTek modems, while
+  `rmnet` is the Qualcomm name. It returned an address in the carrier CGNAT range
+  (100.64.0.0/10), unreachable from the LAN: exactly the mistake the filter was meant to
+  prevent.
 
   Fixed with `IsLocalNetworkIp()`, which requires the IP to be in a private range
   (10/8, 192.168/16, 172.16/12) instead of trusting the interface name, which changes with
@@ -204,9 +205,9 @@ Found in the code review of 2026-08-28, before publishing the repo.
   works in it, and those are only released when the session closes.
 - [x] **Repo published on GitHub** on 2026-08-28: `memoriainfinita/speculum`, private for
   now. Branch `main` with `origin` configured.
-- [x] **Local folder renamed to `speculum`.** Done: the folder is now
-  `<workdir>\speculum`. It had been blocked by the handles of the Claude Code session
-  that made the change; with that session closed it went through. Git was unaffected.
+- [x] **Local folder renamed to `speculum`.** Done. It had been blocked by the handles of
+  the Claude Code session that made the change; with that session closed it went through.
+  Git was unaffected.
 - [x] **Release `v1.0.0`** published on 2026-08-28 with `Speculum.exe` attached (84,480
   bytes, SHA256 `2CA1290A...0238BCF`). The README already pointed at the releases; now they
   exist.
@@ -231,8 +232,31 @@ Found in the code review of 2026-08-28, before publishing the repo.
   visible string); and the four tabs captured to PNG and looked at. The screenshots in
   `docs/` were regenerated in English and renamed (`tab-basic`, `tab-advanced`,
   `tab-window`, `tab-camera`).
-- [ ] **Decide when to make the repo public.** Before that, note that this `state.md`
-  contains LAN IPs (<phone-ip>/<pc-ip>) and the phone model.
+- [x] **`tools/make-icon.ps1` translated.** Done 2026-08-29, completing the previous item:
+  it was the last file in Spanish. Comments and variable names, with `New-Espejo` becoming
+  `New-Mirror`.
+
+  Verified by regenerating the icon and comparing SHA256 before and after: `speculum.ico`
+  and the four previews come out byte-identical (`speculum.ico` 21701B16…, 34,589 bytes),
+  so the rename changed nothing in the output. Worth repeating on any future edit of this
+  script, since a drawing bug does not show up in the markup.
+- [x] **Personal information taken out of the documentation.** Done 2026-08-29, which was
+  what blocked making the repo public. Removed from this file: the LAN addresses of the
+  phone and the PC, the carrier CGNAT address of the phone, the exact phone model and
+  codename, the local folder path and the name of the private workspace it lives in. The
+  technical lesson is kept in every case — the phone is now "the test phone, a MediaTek
+  based Android 15 device", which is the part that actually mattered, since the interface
+  naming (`ccmni` vs `rmnet`) depends on the modem vendor and not on the model.
+
+  Left in on purpose: the RFC1918 and CGNAT ranges in `Speculum.cs`, which are the
+  program's own logic and public standards; the Xiaomi/HyperOS/MIUI mentions in the README,
+  which are advice about a class of vendor and not about a device; and Tailscale, named
+  because a reader hitting the same timeout needs to know what to look for.
+- [ ] **Decide when to make the repo public.** No blockers left in the documentation.
+- [ ] **Cut a `v1.1.0` release with the English app.** The `v1.0.0` asset is the Spanish
+  build (SHA256 `2CA1290A...0238BCF`), and its release notes describe that version, so they
+  are deliberately left in Spanish: rewriting them would describe a binary that is not the
+  one attached. The current build is 84,480 bytes, SHA256 `DAA98E41...024051A3`.
 - [ ] **Improve the interface.** Scope still to be defined.
 - [x] **Flag coverage audit.** Compared the scrcpy man page (master) against `BuildFlags()`:
   108 documented flags, 42 covered by the interface (39%). The remaining 66, by area:
@@ -257,7 +281,7 @@ Found in the code review of 2026-08-28, before publishing the repo.
   - Verified with 30 automated checks that instantiate the real form and compare the output
     of `BuildFlags()`, including the validations and a regression of the options that
     already existed. Done 2026-08-28.
-- [x] **Test with a real phone.** <test-phone> over USB, scrcpy 4.1. Checked: device
+- [x] **Test with a real phone.** The test phone over USB, scrcpy 4.1. Checked: device
   detection, `--list-apps` (222 lines), `--list-cameras` (3 cameras), `--list-camera-sizes`
   (the new option) and `--list-displays`. Mirror launched from the app with the new flags:
   the window comes up with the given `--window-title` and the position and size from
@@ -278,15 +302,15 @@ Found in the code review of 2026-08-28, before publishing the repo.
   the requested height does not fit on the screen, the system clips it and adjusts the
   width to the phone's ratio, which looks like the flags being ignored when they are not.
 
-- [x] **WiFi pairing tested end to end.** With the phone on `wlan0` <phone-ip>/24 and the
-  PC on <pc-ip>, and with mobile data on at the same time (`ccmni0`,
-  <cgnat-ip>): `ConnectWifi()` put the phone into TCP mode, picked the `wlan0` address
-  discarding the data one, and `adb connect <phone-ip>:5555` connected. After that, a
-  mirror launched with `-e` from the app, with bitrate 2M, size 800 and 30 fps: correct
-  image and `--window-title` / `--window-x` applied. Done 2026-08-28.
+- [x] **WiFi pairing tested end to end.** With the phone and the PC on the same private /24
+  over `wlan0`, and with mobile data on at the same time (`ccmni0`, a CGNAT address):
+  `ConnectWifi()` put the phone into TCP mode, picked the `wlan0` address discarding the
+  data one, and `adb connect <phone>:5555` connected. After that, a mirror launched with
+  `-e` from the app, with bitrate 2M, size 800 and 30 fps: correct image and
+  `--window-title` / `--window-x` applied. Done 2026-08-28.
 
-  This also confirmed live the Tailscale problem already noted above: it installed a
-  `<lan-subnet>` route with metric 0 that beat the Ethernet one (metric 256), sending LAN
+  This also confirmed live the Tailscale problem already noted above: it installed a route
+  for the local subnet with metric 0 that beat the Ethernet one (metric 256), sending LAN
   traffic through the tunnel. Pairing worked all the same, but latency to the phone was
   154 ms on the first ping. After uninstalling Tailscale only the Ethernet route is left
   and it drops to a steady 3-5 ms.
