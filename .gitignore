@@ -1,0 +1,11 @@
+# Historico del proyecto: versiones previas del fuente y los menus .bat que
+# precedieron a la interfaz grafica. Se conservan en disco, fuera del repo.
+.archive/
+
+# Binario compilado. Se genera desde ScrcpyLauncher.cs con el comando del README
+# y se publica adjunto a cada release, no versionado: si no, cada recompilacion
+# duplica 30 KB en el historial y es facil que quede desfasado del fuente.
+ScrcpyLauncher.exe
+
+# Grabaciones que crea la app junto al ejecutable
+Grabaciones/
