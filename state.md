@@ -1,4 +1,4 @@
-# scrcpy Launcher — estado del proyecto
+# Speculum — estado del proyecto
 
 ## Estado actual
 **Funcional y en uso.** Compilado, probado (compilación limpia, arranque sin excepciones,
@@ -27,10 +27,13 @@ Nace porque scrcpy se instaló con `winget` (paquete `Genymobile.scrcpy`) y aunq
 perfectamente por línea de comandos, no hay ninguna forma cómoda de lanzarlo, pararlo,
 grabar, o conectar por WiFi sin escribir comandos cada vez.
 
+El nombre: `speculum` es espejo en latín, que es literalmente lo que hace la herramienta.
+Sigue la convención de <workspace> de nombrar los proyectos con un sustantivo latino real.
+
 ## Estructura de archivos (esta carpeta)
-- `ScrcpyLauncher.cs` — código fuente en C# (WinForms). Un único archivo, sin dependencias
+- `Speculum.cs` — código fuente en C# (WinForms). Un único archivo, sin dependencias
   externas más allá de .NET Framework (que ya viene con Windows).
-- `ScrcpyLauncher.exe` — el programa final, listo para ejecutar. Doble clic y ya. No está
+- `Speculum.exe` — el programa final, listo para ejecutar. Doble clic y ya. No está
   versionado: se genera desde el `.cs` y se publica adjunto a cada release.
 - `README.md`, `LICENSE` (GPLv3), `.gitignore` y `state.md` (este archivo).
 - `docs/` — capturas de las cuatro pestañas, usadas por el README.
@@ -43,7 +46,7 @@ No requiere Visual Studio ni el SDK de .NET. Usa el compilador de C# que ya trae
 (`csc.exe`, parte de .NET Framework):
 
 ```
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /out:ScrcpyLauncher.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll ScrcpyLauncher.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
 ```
 
 (`Add-Type -OutputType WindowsApplication` de PowerShell **no** sirve para esto en
@@ -152,24 +155,28 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   clasificación de IP más la ejecución real, que ahora devuelve `null` con el aviso.
 - [x] **`LICENSE`** GPLv3 añadida, la misma que acta y memoria. Hecho 2026-08-28.
 - [x] **Repositorio git iniciado** (2026-08-28). Rama `main`, commit inicial `48e73a6`.
-  Versionados `ScrcpyLauncher.cs`, `README.md`, `LICENSE`, `state.md` y `.gitignore`.
+  Versionados `Speculum.cs`, `README.md`, `LICENSE`, `state.md` y `.gitignore`.
   Fuera del control de versiones: `.archive/` (versiones previas del fuente y los dos
   menús `.bat`, que se movieron ahí por estar superados por la interfaz gráfica),
-  `ScrcpyLauncher.exe` y la carpeta `Grabaciones/`. El README avisa de que el binario no
+  `Speculum.exe` y la carpeta `Grabaciones/`. El README avisa de que el binario no
   está en el repo y hay que descargarlo de las releases o compilarlo.
-- [x] **Renombrar la carpeta a `scrcpy-launcher`.** Hecho 2026-08-28. No afecta a git.
+- [x] **Renombrada la carpeta `scrcpy-menus` a `scrcpy-launcher`.** Hecho 2026-08-28.
   Lo que lo impedía era `adb.exe`: el servidor queda vivo como demonio y retiene un handle
   sobre el directorio desde el que se lanzó, y sobrevive a la sesión que lo arrancó. Se
   libera con `adb kill-server`. Claude Code también abre handles sobre la carpeta mientras
-  trabaja en ella, pero esos se sueltan al cerrar la sesión.
-- [x] **Repo publicado en GitHub** el 2026-08-28: `memoriainfinita/scrcpy-launcher`, en
-  privado por ahora. Rama `main` con `origin` configurado.
+  trabaja en ella, y esos solo se sueltan al cerrar la sesión.
+- [x] **Repo publicado en GitHub** el 2026-08-28: `memoriainfinita/speculum`, en privado
+  por ahora. Rama `main` con `origin` configurado.
+- [ ] **Renombrar la carpeta local a `speculum`.** El repo, el fuente, el binario y la
+  documentación ya usan el nombre nuevo; falta solo la carpeta, bloqueada por los handles
+  de la sesión de Claude Code que hizo el cambio. Hacerlo con esa sesión cerrada. No afecta
+  a git.
 - [ ] **Adjuntar el `.exe` a una release** y decidir cuando pasar el repo a publico. Antes
   de hacerlo publico, revisar que `state.md` incluye IPs de la LAN (<phone-ip>/<pc-ip>) y el
   modelo del movil.
 - [ ] **Pasar la app a inglés.** Toda la interfaz está en español: etiquetas, pestañas,
   tooltips, mensajes del registro y textos de ayuda. Afecta a las cadenas de
-  `ScrcpyLauncher.cs`, no a la lógica. Decidir de paso si el README y `state.md` también
+  `Speculum.cs`, no a la lógica. Decidir de paso si el README y `state.md` también
   pasan a inglés, como en acta, o se quedan en español.
 - [ ] **Mejorar la interfaz.** Pendiente de definir alcance. Detectado de paso: la interfaz
   no lleva ni una tilde ("Basico", "Conexion", "Version", "Grabar esta sesion"). Si se pasa

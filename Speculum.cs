@@ -86,7 +86,7 @@ public class LauncherForm : Form
 
     public LauncherForm()
     {
-        Text = "scrcpy Launcher";
+        Text = "Speculum";
         ClientSize = new Size(620, 780);
         FormBorderStyle = FormBorderStyle.Sizable;
         MinimumSize = new Size(640, 680);

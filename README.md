@@ -1,4 +1,4 @@
-# scrcpy Launcher
+# Speculum
 
 Interfaz gráfica para Windows que envuelve [scrcpy](https://github.com/Genymobile/scrcpy)
 (espejo y control de pantalla de Android por USB o WiFi), para no depender de la terminal
@@ -8,7 +8,7 @@ ni tener que recordar flags de la línea de comandos.
 ![licencia](https://img.shields.io/badge/licencia-GPL_v3-blue)
 ![plataforma](https://img.shields.io/badge/plataforma-Windows-lightgrey)
 
-![Pestaña Básico de scrcpy Launcher: modo de apertura, conexión USB o WiFi, opciones y registro](docs/tab-basico.png)
+![Pestaña Básico de Speculum: modo de apertura, conexión USB o WiFi, opciones y registro](docs/tab-basico.png)
 
 ## Requisitos
 
@@ -23,12 +23,12 @@ ni tener que recordar flags de la línea de comandos.
   falta activar además **"Depuración USB (ajustes de seguridad)"** para poder controlar el
   móvil, no solo verlo.
 
-No hace falta instalar nada más — `ScrcpyLauncher.exe` no tiene dependencias propias más
+No hace falta instalar nada más — `Speculum.exe` no tiene dependencias propias más
 allá de .NET Framework, que ya viene con Windows.
 
 ## Uso
 
-Doble clic en `ScrcpyLauncher.exe`. No hace falta instalación ni permisos de administrador.
+Doble clic en `Speculum.exe`. No hace falta instalación ni permisos de administrador.
 
 El repositorio contiene el código fuente, no el binario. Para obtener el `.exe`, descárgalo
 de las releases o compílalo tú mismo con una sola orden — ver [Compilar desde el código
@@ -110,11 +110,11 @@ Con la cámara no hay control táctil: scrcpy captura vídeo, no la pantalla del
 
 ## Compilar desde el código fuente
 
-El único archivo fuente es `ScrcpyLauncher.cs` (C#, WinForms). Se compila con el
+El único archivo fuente es `Speculum.cs` (C#, WinForms). Se compila con el
 compilador de C# que ya trae Windows, sin necesidad de Visual Studio ni el SDK de .NET:
 
 ```
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /out:ScrcpyLauncher.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll ScrcpyLauncher.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
 ```
 
 ## Estado del proyecto
