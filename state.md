@@ -1,266 +1,300 @@
-# Speculum — estado del proyecto
+# Speculum — project state
 
-## Estado actual
-**Funcional y en uso.** Compilado, probado (compilación limpia, arranque sin excepciones,
-pruebas de clic reales sobre la ventana) y en uso diario por el propietario.
+## Current state
+**Working and in use.** Built, tested (clean compile, no exceptions on startup, real click
+tests against the window) and used daily by its owner.
 
-Revisión de código del 2026-08-28: corregidos un cuelgue indefinido al leer la salida de
-los procesos, la falta de aviso cuando scrcpy no está instalado y la suposición de que la
-interfaz WiFi del móvil se llama `wlan0`. Corregido también que los procesos hijos
-heredaran el directorio de trabajo del launcher, lo que dejaba al servidor adb reteniendo
-la carpeta del `.exe` y bloqueando moverla o renombrarla. Ver TODO y Decisiones de diseño.
-Pendiente de publicar el repo.
+Code review of 2026-08-28: fixed an indefinite hang while reading process output, the
+missing warning when scrcpy is not installed, and the assumption that the phone's WiFi
+interface is called `wlan0`. Also fixed that child processes inherited the launcher's
+working directory, which left the adb server holding the folder of the `.exe` and blocking
+any attempt to move or rename it. See TODO and Design decisions.
 
-Entorno de la revisión: scrcpy **4.1** instalado con `winget install Genymobile.scrcpy` el
-2026-08-28 (no estaba en la máquina), y un <test-phone> (<codename>, Android 15) por USB.
+Interface translated to English on 2026-08-28, source code included. Repo still to be made
+public.
 
-Verificado contra ese scrcpy 4.1 real, no contra documentación: los 20 flags añadidos
-existen, y los 30 flags largos y 12 cortos que la app ya usaba siguen siendo válidos —
-ninguno se ha renombrado ni retirado.
+Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
+2026-08-28 (it was not on the machine), and a <test-phone> (<codename>, Android 15) over
+USB.
 
-## Qué es
-Herramienta de escritorio para Windows que envuelve [scrcpy](https://github.com/Genymobile/scrcpy)
-(espejo y control de Android por USB/WiFi) en una interfaz gráfica, para no tener que usar
-la terminal ni recordar flags de la línea de comandos.
+Verified against that real scrcpy 4.1, not against documentation: the 20 flags added do
+exist, and the 30 long and 12 short flags the app already used are still valid — none has
+been renamed or withdrawn.
 
-Nace porque scrcpy se instaló con `winget` (paquete `Genymobile.scrcpy`) y aunque funciona
-perfectamente por línea de comandos, no hay ninguna forma cómoda de lanzarlo, pararlo,
-grabar, o conectar por WiFi sin escribir comandos cada vez.
+## What it is
+A Windows desktop tool that wraps [scrcpy](https://github.com/Genymobile/scrcpy) (Android
+mirroring and control over USB/WiFi) in a graphical interface, so there is no need to use
+the terminal or to remember command line flags.
 
-El nombre: `speculum` es espejo en latín, que es literalmente lo que hace la herramienta.
-Sigue la convención de <workspace> de nombrar los proyectos con un sustantivo latino real.
+It exists because scrcpy was installed with `winget` (package `Genymobile.scrcpy`) and,
+while it works perfectly from the command line, there is no comfortable way to launch it,
+stop it, record, or connect over WiFi without typing commands every time.
 
-## Estructura de archivos (esta carpeta)
-- `Speculum.cs` — código fuente en C# (WinForms). Un único archivo, sin dependencias
-  externas más allá de .NET Framework (que ya viene con Windows).
-- `Speculum.exe` — el programa final, listo para ejecutar. Doble clic y ya. No está
-  versionado: se genera desde el `.cs` y se publica adjunto a cada release.
-- `README.md`, `LICENSE` (GPLv3), `.gitignore` y `state.md` (este archivo).
-- `speculum.ico` — icono de la app: espejo ovalado antiguo, cuatro tamaños.
-- `tools/make-icon.ps1` — genera el `.ico`. Requiere Windows PowerShell 5.1.
-- `docs/` — capturas de las cuatro pestañas y `icon.png`, usadas por el README.
-- `.archive/` — fuera del repo: versiones previas del fuente y los dos menús de consola
-  (`scrcpy-menu.bat`, `scrcpy-menu-completo.bat`) que precedieron a la interfaz gráfica.
-- `Grabaciones/` — la crea la app junto al `.exe` al grabar. Fuera del repo.
+The name: `speculum` is Latin for mirror, which is literally what the tool does. It follows
+the <workspace> convention of naming projects with a real Latin noun.
 
-## Cómo compilar el .exe desde el .cs
-No requiere Visual Studio ni el SDK de .NET. Usa el compilador de C# que ya trae Windows
-(`csc.exe`, parte de .NET Framework):
+## File layout (this folder)
+- `Speculum.cs` — C# source (WinForms). A single file, with no external dependencies
+  beyond .NET Framework (which already ships with Windows).
+- `Speculum.exe` — the finished program, ready to run. Double click and that is it. Not
+  versioned: it is generated from the `.cs` and published attached to each release.
+- `README.md`, `LICENSE` (GPLv3), `.gitignore` and `state.md` (this file).
+- `speculum.ico` — the app icon: an antique oval mirror, four sizes.
+- `tools/make-icon.ps1` — generates the `.ico`. Requires Windows PowerShell 5.1.
+- `docs/` — screenshots of the four tabs and `icon.png`, used by the README.
+- `.archive/` — outside the repo: earlier versions of the source and the two console menus
+  (`scrcpy-menu.bat`, `scrcpy-menu-completo.bat`) that preceded the graphical interface.
+- `Recordings/` — created by the app next to the `.exe` when recording. Outside the repo.
+
+## How to build the .exe from the .cs
+Needs neither Visual Studio nor the .NET SDK. It uses the C# compiler that already ships
+with Windows (`csc.exe`, part of .NET Framework):
 
 ```
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /win32icon:speculum.ico /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
 ```
 
-(`Add-Type -OutputType WindowsApplication` de PowerShell **no** sirve para esto en
-PowerShell 7/pwsh — solo funciona en Windows PowerShell 5.1 clásico. Por eso se usa
-`csc.exe` directamente.)
+(PowerShell's `Add-Type -OutputType WindowsApplication` does **not** work for this in
+PowerShell 7/pwsh — only in classic Windows PowerShell 5.1. Hence `csc.exe` directly.)
 
-## Qué hace la interfaz
-- **Pestaña Básico**: modo de apertura (normal / pantalla completa / sin bordes para OBS /
-  solo lectura), selector USB/WiFi, botón de emparejado automático por WiFi, mostrar
-  toques, mantener pantalla activa, grabar sesión con nombre de archivo automático
-  (fecha/hora) en una carpeta `Grabaciones` junto al `.exe`.
-- **Pestaña Avanzado**: checkboxes y desplegables para prácticamente todas las opciones de
-  scrcpy agrupadas por categoría (Video, Audio, Control, Otros) — sin tener que escribir
-  flags a mano. Cada campo de texto libre tiene un ejemplo visible dentro (ej: "8M") y un
-  tooltip con la explicación completa al pasar el ratón. Un campo de texto libre al final
-  cubre cualquier flag no representado en la interfaz.
-- **Gestión**: abrir/cerrar scrcpy, reiniciar o cerrar el servidor adb por separado, ver
-  estado de dispositivos conectados, herramientas informativas (versión, listar cámaras,
-  codificadores, pantallas, apps instaladas).
+Note for scripted builds: run it from PowerShell, not from Git Bash. Git Bash rewrites
+`/nologo` into a Windows path and the compiler fails with `CS2001: source file
+'C:/Program Files/Git/nologo' could not be found`.
 
-## Decisiones de diseño (por qué está hecho así)
-- **WinForms + csc.exe en vez de un `.bat`**: el usuario pidió algo "más cómodo" que un
-  menú de consola — sin ventana negra parpadeando, con controles seleccionables en vez de
-  tener que recordar sintaxis de flags.
-- **Pestaña Avanzado con controles reales (no solo texto libre)**: primera versión tenía
-  un único cuadro de texto para "flags avanzados". El usuario pidió explícitamente que
-  fuera seleccionable como el resto, sin tener que memorizar opciones — de ahí los
-  checkboxes/desplegables por categoría.
-- **Ejemplos + tooltips en los campos de texto**: seguía sin quedar claro qué formato
-  esperaba cada campo (bitrate, recorte, etc.). Se añadió cue banner (placeholder nativo
-  de Windows vía `EM_SETCUEBANNER`) más `ToolTip` con la explicación larga.
-- **Botón "Cerrar ADB" separado de "Reiniciar ADB"**: el usuario preguntó si había forma de
-  cerrar adb sin reiniciarlo. Importante: adb se reinicia solo en cuanto cualquier acción
-  vuelve a tocarlo (comportamiento estándar de la herramienta, no arreglable desde la app).
-- **Preset de "baja latencia WiFi"**: rellena los campos de bitrate/tamaño/fps en la
-  pestaña Avanzado en vez de aplicar flags ocultos, para que no haya duplicados ni magia
-  invisible — todo lo que se envía a scrcpy es visible y editable en los campos.
-- **Directorio de trabajo de los procesos hijos en `%TEMP%`**: sin `WorkingDirectory`, el
-  hijo hereda el cwd del launcher, y el servidor adb se queda con un handle abierto sobre
-  esa carpeta mientras siga vivo. Siendo una app portable, eso pincha la carpeta del propio
-  `.exe`: el usuario no puede moverla, renombrarla ni expulsar el USB, sin ninguna pista de
-  por qué. Se fija `WorkingDirectory = Path.GetTempPath()` en los dos `ProcessStartInfo`.
-  Ninguna ruta de la app depende del cwd: `Grabaciones` se resuelve con
+## What the interface does
+- **Basic tab**: launch mode (normal / fullscreen / borderless for OBS / read-only),
+  USB/WiFi selector, automatic WiFi pairing button, show touches, keep screen awake, record
+  the session with an automatic file name (date/time) in a `Recordings` folder next to the
+  `.exe`.
+- **Advanced tab**: checkboxes and dropdowns for practically every scrcpy option, grouped
+  by category (Video, Audio, Control, Other) — with no flag to type by hand. Every free
+  text field has a visible example inside it (e.g. "8M") and a tooltip with the full
+  explanation on hover. A free text field at the end covers any flag not represented in the
+  interface.
+- **Management**: start/stop scrcpy, restart or stop the adb server separately, see the
+  status of connected devices, informational tools (version, list cameras, encoders,
+  displays, installed apps).
+
+## Design decisions (why it is built this way)
+- **WinForms + csc.exe instead of a `.bat`**: the user asked for something "more
+  comfortable" than a console menu — no black window flashing, with selectable controls
+  instead of having to remember flag syntax.
+- **Advanced tab with real controls (not just free text)**: the first version had a single
+  text box for "advanced flags". The user explicitly asked for it to be selectable like the
+  rest, without having to memorise options — hence the checkboxes/dropdowns by category.
+- **Examples + tooltips on the text fields**: it was still unclear what format each field
+  expected (bitrate, crop, etc.). A cue banner was added (the native Windows placeholder
+  via `EM_SETCUEBANNER`) plus a `ToolTip` with the long explanation.
+- **"Stop ADB" button separate from "Restart ADB"**: the user asked whether there was a way
+  to stop adb without restarting it. Important: adb restarts itself as soon as any action
+  touches it again (standard behaviour of the tool, not fixable from the app).
+- **"Low-latency WiFi" preset**: it fills in the bitrate/size/fps fields on the Advanced tab
+  instead of applying hidden flags, so that there are no duplicates and no invisible magic —
+  everything sent to scrcpy is visible and editable in the fields.
+- **Working directory of the child processes set to `%TEMP%`**: without `WorkingDirectory`,
+  the child inherits the launcher's cwd, and the adb server keeps an open handle on that
+  folder for as long as it lives. In a portable app that pins the folder of the `.exe`
+  itself: the user cannot move it, rename it or eject the USB stick, with no hint as to
+  why. `WorkingDirectory = Path.GetTempPath()` is set on both `ProcessStartInfo`. No path
+  in the app depends on the cwd: `Recordings` is resolved from
   `AppDomain.CurrentDomain.BaseDirectory`.
-- **El servidor adb solo se detiene al salir si lo arrancó la app**: adb es un demonio único
-  de la máquina y puede estar en uso por Android Studio, otra terminal u otra ventana del
-  launcher, así que matarlo incondicionalmente sería apagar algo ajeno. `adbYaEstaba` se
-  calcula en el `Load` del formulario, antes de `Refrescar()` (que consulta adb y por tanto
-  lo arrancaría), y `FormClosing` hace `kill-server` solo si la app lo arrancó y no queda
-  ningún scrcpy abierto. Verificado en las dos ramas: con adb parado de inicio, se detiene
-  al cerrar; con adb ya corriendo, sigue vivo tras cerrar.
-- **Icono generado por script, no dibujado a mano**: `tools/make-icon.ps1` construye el
-  `.ico` con `System.Drawing`, sin dependencias externas, igual que el `.exe` se compila
-  solo con `csc.exe`. El icono queda reproducible y editable en vez de ser un binario
-  opaco. El script pide Windows PowerShell 5.1: `System.Drawing` no viene en pwsh 7.
-- **Un dibujo distinto por tamaño dentro del `.ico`**: el perlado del marco y los degradados
-  solo aparecen a 48 y 256 px; a 32 se quedan los degradados; a 16 solo la silueta, con el
-  óvalo engordado para comerse los márgenes y sin contorno interior, que a ese tamaño se
-  come el anillo por los dos lados. Un `.ico` es un contenedor de imágenes, no una imagen
-  escalada, y es lo que evita que el ornamento se convierta en barro gris en la barra de
-  tareas. Entradas de 16, 32 y 48 como mapa de bits y la de 256 como PNG (formato Vista):
-  comprobado que la entrada PNG de 256x256 sobrevive intacta dentro del `.exe`.
-- **El icono se incrusta con `/win32icon` y la ventana lo extrae del propio `.exe`**
-  (`Icon.ExtractAssociatedIcon`), en vez de incrustarlo por segunda vez como recurso. Un
-  solo origen para Explorador, barra de tareas y barra de título.
+- **The adb server is only stopped on exit if the app started it**: adb is a single
+  machine-wide daemon and may be in use by Android Studio, another terminal or another
+  launcher window, so killing it unconditionally would be shutting down something that is
+  not ours. `adbWasAlreadyRunning` is computed in the form's `Load`, before
+  `RefreshStatus()` (which queries adb and would therefore start it), and `FormClosing`
+  runs `kill-server` only if the app started it and no scrcpy is left open. Verified on
+  both branches: with adb stopped to begin with, it is stopped on close; with adb already
+  running, it survives.
+- **Icon generated by script, not drawn by hand**: `tools/make-icon.ps1` builds the `.ico`
+  with `System.Drawing`, with no external dependencies, just as the `.exe` is built with
+  `csc.exe` alone. The icon stays reproducible and editable instead of being an opaque
+  binary. The script needs Windows PowerShell 5.1: `System.Drawing` is not in pwsh 7.
+- **A different drawing per size inside the `.ico`**: the beading of the frame and the
+  gradients only show at 48 and 256 px; at 32 only the gradients remain; at 16 only the
+  silhouette, with the oval fattened to eat the margins and no inner outline, which at that
+  size eats the ring from both sides. An `.ico` is a container of images, not one scaled
+  image, and that is what keeps the ornament from turning into grey mud in the taskbar.
+  The 16, 32 and 48 entries as bitmaps and the 256 one as PNG (Vista format): the 256x256
+  PNG entry was checked to survive intact inside the `.exe`.
+- **The icon is embedded with `/win32icon` and the window extracts it from the `.exe`
+  itself** (`Icon.ExtractAssociatedIcon`), rather than embedding it a second time as a
+  resource. A single source for Explorer, the taskbar and the title bar.
+- **The whole source in English, not only the visible strings**: the interface, the
+  identifiers and the comments. The repo is meant to go public under GPLv3, and someone
+  arriving at it reads the code, not just the window. Leaving Spanish method names with
+  English strings would have been the worst of both.
+- **The old `Grabaciones` folder is renamed on startup, not abandoned**: the app is
+  portable and the folder lives next to the `.exe`, so an installation that predates the
+  translation already has recorded sessions in it. `MigrateLegacyRecordingsFolder()`
+  renames it to `Recordings` at `Load` if `Recordings` does not exist yet, and says so in
+  the log; if the rename fails it says where the old sessions are instead of losing them
+  silently.
 
-## Contexto de depuración relevante (por si reaparece)
-- Hubo un problema de conexión WiFi que **no era de scrcpy**: Tailscale tenía instalada una
-  ruta que capturaba el tráfico hacia la red local (`<lan-subnet>`) y lo mandaba por el
-  túnel VPN en vez de salir por WiFi directo. Si el emparejado por WiFi falla con timeout
-  aunque el móvil y el PC estén en la misma red, revisar `Get-NetRoute` por si Tailscale
-  (u otra VPN) está secuestrando esa subred.
-- Señal WiFi débil (RSSI por debajo de -75/-80 dBm) causa cortes de audio/vídeo aunque la
-  conexión esté establecida — no es un bug, es física de radio. La red de 2.4GHz suele
-  tener más alcance que la de 5GHz a la misma distancia.
+## Relevant debugging context (in case it comes back)
+- There was a WiFi connection problem that was **not scrcpy's**: Tailscale had installed a
+  route capturing the traffic towards the local network (`<lan-subnet>`) and sending it
+  through the VPN tunnel instead of out over direct WiFi. If WiFi pairing fails with a
+  timeout even though the phone and the PC are on the same network, check `Get-NetRoute` in
+  case Tailscale (or another VPN) is hijacking that subnet.
+- A weak WiFi signal (RSSI below -75/-80 dBm) causes audio/video dropouts even with the
+  connection established — that is not a bug, it is radio physics. The 2.4GHz network
+  usually reaches further than the 5GHz one at the same distance.
+- The scrcpy install has no shim in `%LOCALAPPDATA%\Microsoft\WinGet\Links`: winget adds
+  the package folder itself to the user PATH. A shell whose environment block predates the
+  install therefore does not see `scrcpy.exe`, and the app correctly reports "NOT
+  INSTALLED". Before concluding anything from that message in a script, refresh the PATH
+  from `[Environment]::GetEnvironmentVariable('PATH','User')`.
 
 ## TODO
 
-Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
+Found in the code review of 2026-08-28, before publishing the repo.
 
-- [x] **Deadlock en `RunCommandSync`.** Leía `StandardOutput.ReadToEnd()` completo y
-  después `StandardError.ReadToEnd()`, llamando a `WaitForExit(timeoutMs)` solo al final.
-  Con el hijo escribiendo en los dos streams, llenaba el buffer del pipe sin vaciar (~4 KB)
-  y se bloqueaba. Peor de lo estimado: el bloqueo ocurre *antes* del `WaitForExit`, así que
-  el timeout no llegaba a aplicarse nunca y el cuelgue era **indefinido**, no de 15 s.
-  Reproducido con un proceso que escribe 4000 líneas en cada stream: la versión antigua se
-  quedó colgada sin recuperación; la nueva termina en menos de 2 s con las 8000 líneas
-  íntegras. Arreglado con `BeginOutputReadLine`/`BeginErrorReadLine` y dos
-  `ManualResetEvent`. Hecho 2026-08-28.
+- [x] **Deadlock in `RunCommandSync`.** It read the whole of `StandardOutput.ReadToEnd()`
+  and then `StandardError.ReadToEnd()`, calling `WaitForExit(timeoutMs)` only at the end.
+  With the child writing to both streams, it filled the pipe buffer without draining it
+  (~4 KB) and blocked. Worse than estimated: the block happens *before* the `WaitForExit`,
+  so the timeout never got applied and the hang was **indefinite**, not 15 s. Reproduced
+  with a process writing 4000 lines to each stream: the old version hung with no recovery;
+  the new one finishes in under 2 s with all 8000 lines intact. Fixed with
+  `BeginOutputReadLine`/`BeginErrorReadLine` and two `ManualResetEvent`. Done 2026-08-28.
 
-  Matiz comprobado después con el móvil conectado: **`--list-apps` no dispara el cuelgue**,
-  pese a ser el candidato que parecía más probable. Con 222 líneas de salida la versión
-  antigua terminó sin problema; scrcpy no satura los dos pipes a la vez. El fallo es real,
-  pero hace falta un proceso que escriba mucho en ambos streams simultáneamente.
+  A nuance checked afterwards with the phone connected: **`--list-apps` does not trigger
+  the hang**, despite being the likeliest looking candidate. With 222 lines of output the
+  old version finished without trouble; scrcpy does not saturate both pipes at once. The
+  bug is real, but it takes a process that writes a lot to both streams simultaneously.
 
-  Medida la espera de los `ManualResetEvent` por si añadía latencia: no la añade. El fin de
-  stream llega a los 1741 ms, antes de que retorne `WaitForExit`, y el total coincide con
-  la duración del proceso. Una comparación anterior que daba 6 s frente a 1,8 s era
-  engañosa: medía la primera ejecución de scrcpy, que sube el `scrcpy-server` de 733 KB al
-  móvil y procesa las apps, contra una segunda ya caliente.
-- [x] **Sin comprobación de dependencias al arrancar.** Añadidos `BuscarEnPath()` y
-  `ComprobarDependencias()`, llamados desde `Refrescar()` y `Abrir()`. Sin scrcpy, la barra
-  de estado muestra "scrcpy: NO INSTALADO" y el registro indica qué falta y el
-  `winget install Genymobile.scrcpy`, en lugar del "no se puede encontrar el archivo
-  especificado" de Windows. Verificado en una máquina sin scrcpy. Hecho 2026-08-28.
-- [x] **`ConectarWifi` asumía la interfaz `wlan0`.** Extraído a `ObtenerIpMovil()`: prueba
-  `wlan0` primero y, si no da nada, repasa el resto de interfaces. Hecho 2026-08-28.
+  The wait on the `ManualResetEvent` was measured in case it added latency: it does not.
+  End of stream arrives at 1741 ms, before `WaitForExit` returns, and the total matches the
+  duration of the process. An earlier comparison showing 6 s against 1.8 s was misleading:
+  it measured the first run of scrcpy, which uploads the 733 KB `scrcpy-server` to the
+  phone and processes the apps, against a second, already warm one.
+- [x] **No dependency check on startup.** Added `FindInPath()` and `CheckDependencies()`,
+  called from `RefreshStatus()` and `Launch()`. Without scrcpy, the status bar shows
+  "scrcpy: NOT INSTALLED" and the log says what is missing plus the
+  `winget install Genymobile.scrcpy`, instead of Windows' "the system cannot find the file
+  specified". Verified on a machine without scrcpy. Done 2026-08-28.
+- [x] **`ConnectWifi` assumed the `wlan0` interface.** Extracted into `GetPhoneIp()`: it
+  tries `wlan0` first and, failing that, goes through the rest of the interfaces. Done
+  2026-08-28.
 
-  La primera versión filtraba por nombre de interfaz (`rmnet`, `dummy`, `tun`) y **falló al
-  probarla con el móvil real**: un <test-phone> con el WiFi apagado no tiene `wlan0`,
-  y sus interfaces de datos son `ccmni0`/`ccmni1` — así se llaman en los módems MediaTek,
-  mientras que `rmnet` es el nombre en Qualcomm. Devolvía `<cgnat-ip>`, una IP del
-  rango CGNAT de la operadora (100.64.0.0/10) inalcanzable desde la LAN: justo el error que
-  el filtro pretendía evitar.
+  The first version filtered by interface name (`rmnet`, `dummy`, `tun`) and **failed when
+  tested against the real phone**: a <test-phone> with WiFi off has no `wlan0`, and
+  its data interfaces are `ccmni0`/`ccmni1` — that is what they are called on MediaTek
+  modems, while `rmnet` is the Qualcomm name. It returned `<cgnat-ip>`, an address in
+  the carrier CGNAT range (100.64.0.0/10) unreachable from the LAN: exactly the mistake the
+  filter was meant to prevent.
 
-  Corregido con `EsIpDeRedLocal()`, que exige que la IP esté en un rango privado
-  (10/8, 192.168/16, 172.16/12) en vez de fiarse del nombre de la interfaz, que cambia
-  según el fabricante del módem. Si no hay ninguna válida, lista las descartadas con su
-  interfaz y dice que encienda el WiFi. Verificado contra el móvil: 12 casos de
-  clasificación de IP más la ejecución real, que ahora devuelve `null` con el aviso.
-- [x] **`LICENSE`** GPLv3 añadida, la misma que acta y memoria. Hecho 2026-08-28.
-- [x] **Repositorio git iniciado** (2026-08-28). Rama `main`, commit inicial `48e73a6`.
-  Versionados `Speculum.cs`, `README.md`, `LICENSE`, `state.md` y `.gitignore`.
-  Fuera del control de versiones: `.archive/` (versiones previas del fuente y los dos
-  menús `.bat`, que se movieron ahí por estar superados por la interfaz gráfica),
-  `Speculum.exe` y la carpeta `Grabaciones/`. El README avisa de que el binario no
-  está en el repo y hay que descargarlo de las releases o compilarlo.
-- [x] **Renombrada la carpeta `scrcpy-menus` a `scrcpy-launcher`.** Hecho 2026-08-28.
-  Lo que lo impedía era `adb.exe`: el servidor queda vivo como demonio y retiene un handle
-  sobre el directorio desde el que se lanzó, y sobrevive a la sesión que lo arrancó. Se
-  libera con `adb kill-server`. Claude Code también abre handles sobre la carpeta mientras
-  trabaja en ella, y esos solo se sueltan al cerrar la sesión.
-- [x] **Repo publicado en GitHub** el 2026-08-28: `memoriainfinita/speculum`, en privado
-  por ahora. Rama `main` con `origin` configurado.
-- [ ] **Renombrar la carpeta local a `speculum`.** El repo, el fuente, el binario y la
-  documentación ya usan el nombre nuevo; falta solo la carpeta, bloqueada por los handles
-  de la sesión de Claude Code que hizo el cambio. Hacerlo con esa sesión cerrada. No afecta
-  a git.
-- [x] **Release `v1.0.0`** publicada el 2026-08-28 con `Speculum.exe` adjunto (84.480
-  bytes, SHA256 `2CA1290A...0238BCF`). El README ya apuntaba a las releases; ahora existen.
-- [ ] **Decidir cuando pasar el repo a publico.** Antes, revisar que este `state.md`
-  incluye IPs de la LAN (<phone-ip>/<pc-ip>) y el modelo del movil.
-- [ ] **Pasar la app a inglés.** Toda la interfaz está en español: etiquetas, pestañas,
-  tooltips, mensajes del registro y textos de ayuda. Afecta a las cadenas de
-  `Speculum.cs`, no a la lógica. Decidir de paso si el README y `state.md` también
-  pasan a inglés, como en acta, o se quedan en español.
-- [ ] **Mejorar la interfaz.** Pendiente de definir alcance. Detectado de paso: la interfaz
-  no lleva ni una tilde ("Basico", "Conexion", "Version", "Grabar esta sesion"). Si se pasa
-  a inglés esto se resuelve solo, así que conviene hacer antes la traducción y no corregir
-  tildes que van a desaparecer. Hasta entonces, los textos nuevos se escriben sin tilde por
-  coherencia con el resto.
-- [x] **Cotejo de cobertura de flags.** Comparado el man page de scrcpy (master) contra
-  `BuildFlags()`: 108 flags documentados, 42 cubiertos por la interfaz (39%). Los 66
-  restantes, por área: cámara 9, ventana 10, conexión/adb 8, teclado/ratón 7, pantallas 6,
-  codecs 5, buffers 4, grabación 2, V4L2 2 (solo Linux), otros 13. Hecho 2026-08-28.
-- [x] **Añadidos los flags de alto valor.** Dos pestañas nuevas, 19 controles:
-  - *Ventana y captura*: `--window-x/y/width/height`, `--window-title`, `--no-window`;
+  Fixed with `IsLocalNetworkIp()`, which requires the IP to be in a private range
+  (10/8, 192.168/16, 172.16/12) instead of trusting the interface name, which changes with
+  the modem vendor. If there is no valid one, it lists the rejected ones with their
+  interface and says to turn WiFi on. Verified against the phone: 12 IP classification
+  cases plus the real run, which now returns `null` with the warning.
+- [x] **`LICENSE`** GPLv3 added, the same one as acta and memoria. Done 2026-08-28.
+- [x] **Git repository initialised** (2026-08-28). Branch `main`, initial commit `48e73a6`.
+  Versioned: `Speculum.cs`, `README.md`, `LICENSE`, `state.md` and `.gitignore`. Outside
+  version control: `.archive/` (earlier versions of the source and the two `.bat` menus,
+  moved there once superseded by the graphical interface), `Speculum.exe` and the
+  recordings folder. The README warns that the binary is not in the repo and has to be
+  downloaded from the releases or built.
+- [x] **Renamed the `scrcpy-menus` folder to `scrcpy-launcher`.** Done 2026-08-28.
+  What blocked it was `adb.exe`: the server stays alive as a daemon and holds a handle on
+  the directory it was launched from, and it outlives the session that started it. It is
+  released with `adb kill-server`. Claude Code also opens handles on the folder while it
+  works in it, and those are only released when the session closes.
+- [x] **Repo published on GitHub** on 2026-08-28: `memoriainfinita/speculum`, private for
+  now. Branch `main` with `origin` configured.
+- [x] **Local folder renamed to `speculum`.** Done: the folder is now
+  `<workdir>\speculum`. It had been blocked by the handles of the Claude Code session
+  that made the change; with that session closed it went through. Git was unaffected.
+- [x] **Release `v1.0.0`** published on 2026-08-28 with `Speculum.exe` attached (84,480
+  bytes, SHA256 `2CA1290A...0238BCF`). The README already pointed at the releases; now they
+  exist.
+- [x] **App translated to English.** Done 2026-08-28. The whole source: visible strings
+  (labels, tabs, tooltips, log messages), identifiers and comments. `Refrescar()` became
+  `RefreshStatus()`, not `Refresh()`: `Form.Refresh()` already exists and a private method
+  with that name would hide it. README and this file translated as well; the interface has
+  no accented characters left to fix, so the note about writing new text without accents no
+  longer applies.
+
+  Two overlaps appeared because the English labels have different widths than the Spanish
+  ones: "Height:" ran into its text box on the Window tab, and "Facing:" into its dropdown
+  on the Camera tab. They were caught by instantiating the real form and testing every pair
+  of sibling controls for intersecting bounds — worth keeping as the check for any future
+  label change, since neither was visible in the source. Tab pages have to be given
+  `tabControl.DisplayRectangle.Size` first: until the tab is shown they keep their 200x100
+  design size and every measurement inside them is meaningless.
+
+  Verified: clean compile; 30 automated checks (no overlaps, nothing clipped, every tools
+  dropdown entry still matching a `case` in `RunTool`, `BuildFlags` emitting the same flags
+  as before the translation, the incompatible pairs still blocked, no Spanish left in any
+  visible string); and the four tabs captured to PNG and looked at. The screenshots in
+  `docs/` were regenerated in English and renamed (`tab-basic`, `tab-advanced`,
+  `tab-window`, `tab-camera`).
+- [ ] **Decide when to make the repo public.** Before that, note that this `state.md`
+  contains LAN IPs (<phone-ip>/<pc-ip>) and the phone model.
+- [ ] **Improve the interface.** Scope still to be defined.
+- [x] **Flag coverage audit.** Compared the scrcpy man page (master) against `BuildFlags()`:
+  108 documented flags, 42 covered by the interface (39%). The remaining 66, by area:
+  camera 9, window 10, connection/adb 8, keyboard/mouse 7, displays 6, codecs 5, buffers 4,
+  recording 2, V4L2 2 (Linux only), other 13. Done 2026-08-28.
+- [x] **High-value flags added.** Two new tabs, 19 controls:
+  - *Window and capture*: `--window-x/y/width/height`, `--window-title`, `--no-window`;
     `--record-format`, `--record-orientation`; `--start-app`, `--new-display`,
     `--display-id`.
-  - *Cámara*: `--camera-id`, `--camera-facing`, `--camera-size`, `--camera-fps`,
+  - *Camera*: `--camera-id`, `--camera-facing`, `--camera-size`, `--camera-fps`,
     `--camera-ar`, `--camera-zoom`, `--camera-high-speed`, `--camera-torch`.
-  - `--list-camera-sizes` añadido al desplegable de herramientas.
-  - Al configurar cualquier campo de cámara, la fuente de vídeo pasa a `camera` sola y se
-    avisa en el registro: si no, scrcpy ignora esos flags en silencio.
-  - `MotivoParaNoLanzar()` bloquea las combinaciones incompatibles (`--new-display` con
-    `--display-id`, `--camera-id` con `--camera-facing`) explicando cuál quitar.
-  - `LimpiarAvanzado()` extendido a los campos nuevos; si no, quedaban flags activos
-    invisibles tras pulsar "Limpiar todo".
-  - Cobertura tras el cambio: 62 de 108 flags (57%), medida con el mismo cotejo. Lo que
-    queda fuera es ajuste fino (codecs, buffers), específico de Linux (V4L2), de conexión
-    con varios dispositivos, o alcanzable por el campo de flags libres.
-  - Verificado con 30 comprobaciones automáticas que instancian el formulario real y
-    contrastan la salida de `BuildFlags()`, incluidas las validaciones y una regresión de
-    las opciones que ya existían. Hecho 2026-08-28.
-- [x] **Prueba con móvil real.** <test-phone> por USB, scrcpy 4.1. Comprobados:
-  detección del dispositivo, `--list-apps` (222 líneas), `--list-cameras` (3 cámaras),
-  `--list-camera-sizes` (la opción nueva) y `--list-displays`. Espejo lanzado desde la app
-  con los flags nuevos: la ventana sale con el `--window-title` indicado y la posición y
-  tamaño de `--window-x/y/width/height` se aplican. Hecho 2026-08-28.
+  - `--list-camera-sizes` added to the tools dropdown.
+  - Setting any camera field switches the video source to `camera` on its own and says so
+    in the log: otherwise scrcpy ignores those flags silently.
+  - `BlockingReason()` blocks the incompatible combinations (`--new-display` with
+    `--display-id`, `--camera-id` with `--camera-facing`) explaining which one to drop.
+  - `ClearAdvanced()` extended to the new fields; otherwise flags stayed active and
+    invisible after pressing "Clear all".
+  - Coverage after the change: 62 of 108 flags (57%), measured with the same audit. What is
+    left out is fine tuning (codecs, buffers), Linux specific (V4L2), multi-device
+    connection, or reachable through the free flags field.
+  - Verified with 30 automated checks that instantiate the real form and compare the output
+    of `BuildFlags()`, including the validations and a regression of the options that
+    already existed. Done 2026-08-28.
+- [x] **Test with a real phone.** <test-phone> over USB, scrcpy 4.1. Checked: device
+  detection, `--list-apps` (222 lines), `--list-cameras` (3 cameras), `--list-camera-sizes`
+  (the new option) and `--list-displays`. Mirror launched from the app with the new flags:
+  the window comes up with the given `--window-title` and the position and size from
+  `--window-x/y/width/height` are applied. Done 2026-08-28.
 
-  Cámara probada de extremo a extremo: con `--camera-id=0`, `--camera-size=1920x1080` y
-  `--camera-fps=30`, y la fuente de vídeo dejada a propósito en "(por defecto)". La app
-  detectó los campos, cambió la fuente a `camera` sola y lo registró, y scrcpy mostró la
-  imagen en vivo de la cámara trasera. La ventana sale horizontal (~16:9) frente al espejo
-  de pantalla, que es vertical (1080x2400): confirma que la fuente cambió de verdad.
-  Tamaños admitidos por este móvil, vía `--list-camera-sizes`: de 3264x2448 a 720x480 en
-  la trasera, con fps {10, 15, 20, 30}.
+  Camera tested end to end: with `--camera-id=0`, `--camera-size=1920x1080` and
+  `--camera-fps=30`, and the video source deliberately left at "(default)". The app
+  detected the fields, switched the source to `camera` and logged it, and scrcpy showed the
+  live image from the back camera. The window comes up landscape (~16:9) as opposed to
+  screen mirroring, which is portrait (1080x2400): that confirms the source really changed.
+  Sizes this phone accepts, via `--list-camera-sizes`: from 3264x2448 down to 720x480 on
+  the back camera, with fps {10, 15, 20, 30}.
 
-  Al medir la ventana, `GetWindowRect` engaña: incluye el borde invisible de DWM y da una
-  posición y un tamaño que no son los visibles. Para comprobar dónde está de verdad hay que
-  usar `DwmGetWindowAttribute` con `DWMWA_EXTENDED_FRAME_BOUNDS` (9). Además scrcpy coloca
-  el área de vídeo, no la ventana: la barra de título añade unos 38 px por encima. Y si el
-  alto pedido no cabe en la pantalla, el sistema lo recorta y ajusta el ancho a la
-  proporción del móvil, que parece que los flags se ignoren cuando no es así.
+  When measuring the window, `GetWindowRect` lies: it includes the invisible DWM border and
+  gives a position and a size that are not the visible ones. To check where it really is
+  you need `DwmGetWindowAttribute` with `DWMWA_EXTENDED_FRAME_BOUNDS` (9). Besides, scrcpy
+  positions the video area, not the window: the title bar adds about 38 px on top. And if
+  the requested height does not fit on the screen, the system clips it and adjusts the
+  width to the phone's ratio, which looks like the flags being ignored when they are not.
 
-- [x] **Emparejado WiFi probado de extremo a extremo.** Con el móvil en `wlan0`
-  <phone-ip>/24 y el PC en <pc-ip>, y con los datos móviles activos a la vez
-  (`ccmni0`, <cgnat-ip>): `ConectarWifi()` puso el móvil en TCP, eligió la IP de
-  `wlan0` descartando la de datos, y `adb connect <phone-ip>:5555` conectó. Después,
-  espejo lanzado con `-e` desde la app, con bitrate 2M, 800 de tamaño y 30 fps: imagen
-  correcta y `--window-title` / `--window-x` aplicados. Hecho 2026-08-28.
+- [x] **WiFi pairing tested end to end.** With the phone on `wlan0` <phone-ip>/24 and the
+  PC on <pc-ip>, and with mobile data on at the same time (`ccmni0`,
+  <cgnat-ip>): `ConnectWifi()` put the phone into TCP mode, picked the `wlan0` address
+  discarding the data one, and `adb connect <phone-ip>:5555` connected. After that, a
+  mirror launched with `-e` from the app, with bitrate 2M, size 800 and 30 fps: correct
+  image and `--window-title` / `--window-x` applied. Done 2026-08-28.
 
-  De paso quedó confirmado en vivo el problema de Tailscale que ya estaba anotado más
-  abajo: instalaba una ruta `<lan-subnet>` con métrica 0 que ganaba a la de Ethernet
-  (métrica 256), mandando el tráfico de la LAN por el túnel. El emparejado funcionó igual,
-  pero la latencia al móvil era de 154 ms en el primer ping. Tras desinstalar Tailscale
-  queda solo la ruta por Ethernet y baja a 3-5 ms estables.
-- [x] **Revisión visual de las pestañas nuevas** (2026-08-28). Cámara se veía bien. En
-  "Ventana y captura" el grupo "Apps y pantallas" salía cortado por abajo: los tres grupos
-  suman ~332 px y el `TabControl` tenía 305 px de alto fijo, así que a los campos de
-  pantalla nueva e id solo se llegaba haciendo scroll dentro de la pestaña. Agrandar la
-  ventana no servía: el `TabControl` está anclado `Top|Left|Right`, sin `Bottom`, y no
-  crece. Corregido subiendo el `TabControl` a 380 px, `ClientSize` a 620x780 y
-  `MinimumSize` a 640x680, y bajando botones, herramientas y registro de `y=355` a `y=430`.
-  Verificado en pantalla: ya entra todo sin scroll.
+  This also confirmed live the Tailscale problem already noted above: it installed a
+  `<lan-subnet>` route with metric 0 that beat the Ethernet one (metric 256), sending LAN
+  traffic through the tunnel. Pairing worked all the same, but latency to the phone was
+  154 ms on the first ping. After uninstalling Tailscale only the Ethernet route is left
+  and it drops to a steady 3-5 ms.
+- [x] **Visual review of the new tabs** (2026-08-28). Camera looked fine. On "Window and
+  capture" the "Apps and displays" group was cut off at the bottom: the three groups add up
+  to ~332 px and the `TabControl` had a fixed height of 305 px, so the new-display and id
+  fields could only be reached by scrolling inside the tab. Making the window bigger did
+  not help: the `TabControl` is anchored `Top|Left|Right`, without `Bottom`, and does not
+  grow. Fixed by raising the `TabControl` to 380 px, `ClientSize` to 620x780 and
+  `MinimumSize` to 640x680, and moving the buttons, tools and log down from `y=355` to
+  `y=430`. Verified on screen: it all fits with no scrolling.

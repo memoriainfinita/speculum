@@ -2,126 +2,122 @@
 
 # Speculum
 
-*Speculum*, espejo en latín.
+*Speculum*, Latin for mirror.
 
-Interfaz gráfica para Windows que envuelve [scrcpy](https://github.com/Genymobile/scrcpy)
-(espejo y control de pantalla de Android por USB o WiFi), para no depender de la terminal
-ni tener que recordar flags de la línea de comandos.
+A graphical interface for Windows that wraps [scrcpy](https://github.com/Genymobile/scrcpy)
+(Android screen mirroring and control over USB or WiFi), so you do not depend on the
+terminal or have to remember command line flags.
 
-![estado](https://img.shields.io/badge/estado-funcional-brightgreen)
-![licencia](https://img.shields.io/badge/licencia-GPL_v3-blue)
-![plataforma](https://img.shields.io/badge/plataforma-Windows-lightgrey)
+![status](https://img.shields.io/badge/status-working-brightgreen)
+![license](https://img.shields.io/badge/license-GPL_v3-blue)
+![platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
-![Pestaña Básico de Speculum: modo de apertura, conexión USB o WiFi, opciones y registro](docs/tab-basico.png)
+![Speculum Basic tab: launch mode, USB or WiFi connection, options and log](docs/tab-basic.png)
 
-## Requisitos
+## Requirements
 
 - Windows 10/11.
-- [scrcpy](https://github.com/Genymobile/scrcpy) instalado, con `scrcpy.exe` y `adb.exe`
-  accesibles en el PATH del sistema. La forma más sencilla:
+- [scrcpy](https://github.com/Genymobile/scrcpy) installed, with `scrcpy.exe` and `adb.exe`
+  reachable from the system PATH. The simplest way:
   ```
   winget install Genymobile.scrcpy
   ```
-- Un móvil Android con la **depuración USB** activada (Ajustes → Opciones de
-  desarrollador → Depuración USB). En algunos fabricantes (Xiaomi/HyperOS, MIUI…) hace
-  falta activar además **"Depuración USB (ajustes de seguridad)"** para poder controlar el
-  móvil, no solo verlo.
+- An Android phone with **USB debugging** enabled (Settings → Developer options → USB
+  debugging). On some vendors (Xiaomi/HyperOS, MIUI…) you also need to enable **"USB
+  debugging (security settings)"** to be able to control the phone, not just see it.
 
-No hace falta instalar nada más — `Speculum.exe` no tiene dependencias propias más
-allá de .NET Framework, que ya viene con Windows.
+Nothing else needs installing — `Speculum.exe` has no dependencies of its own beyond .NET
+Framework, which already ships with Windows.
 
-## Uso
+## Usage
 
-Doble clic en `Speculum.exe`. No hace falta instalación ni permisos de administrador.
+Double click `Speculum.exe`. No installation and no administrator rights needed.
 
-El repositorio contiene el código fuente, no el binario. Para obtener el `.exe`, descárgalo
-de las releases o compílalo tú mismo con una sola orden — ver [Compilar desde el código
-fuente](#compilar-desde-el-código-fuente), al final.
+The repository holds the source code, not the binary. To get the `.exe`, download it from
+the releases or build it yourself with a single command — see [Building from
+source](#building-from-source), at the end.
 
-### Pestaña Básico
+### Basic tab
 
-| Sección | Qué hace |
+| Section | What it does |
 |---|---|
-| Modo de apertura | Normal, pantalla completa, sin bordes (para capturar con OBS), o solo lectura (ves el móvil pero no lo controlas) |
-| Conexión | Elegir USB o WiFi, y el botón **Emparejar por WiFi** que hace todo el proceso automático (requiere el móvil por USB la primera vez) |
-| Opciones | Mostrar toques en pantalla, mantener el móvil despierto, grabar la sesión a un `.mp4` con fecha automática |
+| Launch mode | Normal, fullscreen, borderless (to capture in OBS), or read-only (you see the phone but do not control it) |
+| Connection | Pick USB or WiFi, plus the **Pair over WiFi** button that runs the whole process automatically (needs the phone over USB the first time) |
+| Options | Show touches on screen, keep the phone awake, record the session to an `.mp4` with an automatic timestamp |
 
-Botones inferiores: **Abrir / Cerrar scrcpy**, **Reiniciar / Cerrar ADB** (el servidor que
-usa scrcpy para hablar con el móvil), **Grabaciones** (abre la carpeta donde se guardan), y
-un desplegable de herramientas informativas (versión, codificadores, cámaras, tamaños de
-cámara, pantallas y apps instaladas del móvil).
+Bottom buttons: **Start / Stop scrcpy**, **Restart / Stop ADB** (the server scrcpy uses to
+talk to the phone), **Recordings** (opens the folder they are saved in), and a dropdown of
+informational tools (version, encoders, cameras, camera sizes, displays and the apps
+installed on the phone).
 
-### Pestaña Avanzado
+### Advanced tab
 
-Todas las opciones de scrcpy organizadas por categoría (Video, Audio, Control, Otros),
-como checkboxes y desplegables — no hace falta memorizar ningún flag. Los campos de texto
-muestran un ejemplo dentro (p. ej. `ej: 8M`) y una explicación al pasar el ratón por
-encima. Un campo libre al final permite escribir cualquier flag de scrcpy no representado
-en la interfaz, tal cual se pondría en una terminal.
+Every scrcpy option organised by category (Video, Audio, Control, Other), as checkboxes and
+dropdowns — no flag to memorise. The text fields show an example inside them (e.g.
+`e.g. 8M`) and an explanation on hover. A free field at the end lets you write any scrcpy
+flag not covered by the interface, exactly as you would type it in a terminal.
 
-![Pestaña Avanzado: opciones de vídeo, audio y control como checkboxes y desplegables](docs/tab-avanzado.png)
+![Advanced tab: video, audio and control options as checkboxes and dropdowns](docs/tab-advanced.png)
 
-### Pestaña Ventana y captura
+### Window and capture tab
 
-| Sección | Qué hace |
+| Section | What it does |
 |---|---|
-| Ventana de scrcpy | Posición, tamaño y título de la ventana al abrirse. Útil para dejarla siempre en el mismo sitio y capturarla con OBS sin recolocarla cada vez. También permite abrir sin ventana, para grabar o controlar por OTG |
-| Grabación | Formato del archivo (`mp4`, `mkv`, y los de solo audio) y rotación aplicada a la grabación. Se aplican a **Grabar esta sesión**, de la pestaña Básico |
-| Apps y pantallas | Abrir una app del móvil al conectar, crear una pantalla virtual nueva, o espejar una pantalla concreta por su id |
+| scrcpy window | Position, size and title of the window when it opens. Handy to keep it always in the same place and capture it in OBS without moving it every time. It can also open with no window at all, to record or to control over OTG |
+| Recording | File format (`mp4`, `mkv`, and the audio-only ones) and rotation applied to the recording. They apply to **Record this session**, on the Basic tab |
+| Apps and displays | Start an app on the phone when connecting, create a new virtual display, or mirror a specific display by its id |
 
-![Pestaña Ventana y captura: posición y título de la ventana, formato de grabación, apps y pantallas](docs/tab-ventana.png)
+![Window and capture tab: window position and title, recording format, apps and displays](docs/tab-window.png)
 
-### Pestaña Cámara
+### Camera tab
 
-Usa la cámara del móvil como fuente de vídeo en vez de su pantalla: sirve para emplearlo
-como webcam. Se elige la cámara por id o por cara (frontal, trasera, externa), y se ajustan
-resolución, fps, relación de aspecto, zoom, modo de alta velocidad y la linterna.
+Uses the phone camera as the video source instead of its screen: this is what turns it into
+a webcam. Pick the camera by id or by facing (front, back, external), and adjust
+resolution, fps, aspect ratio, zoom, high speed mode and the torch.
 
-Al rellenar cualquier campo de esta pestaña, la fuente de vídeo pasa a `camera`
-automáticamente y se avisa en el registro — de lo contrario scrcpy ignoraría esas opciones
-sin decir nada. Para saber qué resoluciones admite tu móvil, usa **Listar tamaños de
-cámara** en el desplegable de herramientas.
+Filling in any field on this tab switches the video source to `camera` automatically and
+says so in the log — otherwise scrcpy would ignore those options without a word. To find
+out which resolutions your phone supports, use **List camera sizes** in the tools dropdown.
 
-Con la cámara no hay control táctil: scrcpy captura vídeo, no la pantalla del móvil.
+There is no touch control with the camera: scrcpy captures video, not the phone screen.
 
-![Pestaña Cámara: id, cara, tamaño, fps, relación, zoom, alta velocidad y linterna](docs/tab-camara.png)
+![Camera tab: id, facing, size, fps, aspect ratio, zoom, high speed and torch](docs/tab-camera.png)
 
-## Conectar por WiFi
+## Connecting over WiFi
 
-1. Conecta el móvil por USB una vez, con la depuración activada.
-2. Pulsa **Emparejar por WiFi** en la pestaña Básico. Detecta la IP del móvil y conecta
-   solo.
-3. Ya puedes desconectar el cable. La próxima vez que el móvil se reinicie, hará falta
-   repetir el proceso (el modo WiFi de adb no sobrevive a un reinicio del teléfono).
+1. Connect the phone over USB once, with debugging enabled.
+2. Press **Pair over WiFi** on the Basic tab. It finds the phone IP and connects on its own.
+3. You can unplug the cable now. Next time the phone reboots you will have to repeat the
+   process (adb's WiFi mode does not survive a reboot of the phone).
 
-## Solución de problemas
+## Troubleshooting
 
-- **El emparejado por WiFi da timeout aunque el móvil y el PC estén en la misma red**:
-  revisa si tienes alguna VPN activa (Tailscale, etc.) que pueda estar capturando el
-  tráfico hacia tu red local. Pruébalo con la VPN desactivada.
-- **Vídeo a tirones o cortes de audio por WiFi**: normalmente es señal WiFi débil, no un
-  problema de scrcpy. Si estás en una red de 5GHz, prueba la de 2.4GHz (menos velocidad
-  pero más alcance), o acércate al router. También puedes bajar el bitrate/resolución en
-  la pestaña Avanzado para que tolere mejor una señal floja.
-- **Se ve la pantalla pero no puedes tocar nada**: en móviles Xiaomi/HyperOS/MIUI, activa
-  también "Depuración USB (ajustes de seguridad)" en Opciones de desarrollador, además de
-  la depuración USB normal.
-- **adb no se queda cerrado**: es normal. adb reinicia su servidor automáticamente en
-  cuanto cualquier acción (incluida "Actualizar estado") vuelve a usarlo.
-- **adb se detiene al cerrar el launcher**: solo si no estaba corriendo cuando lo abriste.
-  Si ya estaba en marcha (Android Studio, otra terminal, otra ventana del launcher), la app
-  no lo toca al salir.
+- **WiFi pairing times out even though the phone and the PC are on the same network**:
+  check whether you have a VPN running (Tailscale, etc.) that may be capturing the traffic
+  towards your local network. Try it with the VPN disabled.
+- **Stuttering video or audio dropouts over WiFi**: usually a weak WiFi signal rather than
+  a scrcpy problem. If you are on a 5GHz network, try the 2.4GHz one (slower but longer
+  range), or move closer to the router. You can also lower the bitrate/resolution on the
+  Advanced tab so it copes better with a poor signal.
+- **You can see the screen but cannot touch anything**: on Xiaomi/HyperOS/MIUI phones,
+  enable "USB debugging (security settings)" in Developer options as well as plain USB
+  debugging.
+- **adb will not stay stopped**: that is normal. adb restarts its server automatically as
+  soon as any action (including "Refresh status") uses it again.
+- **adb stops when the launcher closes**: only if it was not running when you opened it. If
+  it was already up (Android Studio, another terminal, another launcher window), the app
+  leaves it alone on exit.
 
-## Compilar desde el código fuente
+## Building from source
 
-El único archivo fuente es `Speculum.cs` (C#, WinForms). Se compila con el
-compilador de C# que ya trae Windows, sin necesidad de Visual Studio ni el SDK de .NET:
+The only source file is `Speculum.cs` (C#, WinForms). It builds with the C# compiler that
+already ships with Windows, with no need for Visual Studio or the .NET SDK:
 
 ```
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /win32icon:speculum.ico /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
 ```
 
-## Estado del proyecto
+## Project status
 
-Ver [`state.md`](state.md) para el histórico de decisiones de diseño, contexto de
-depuración y pendientes.
+See [`state.md`](state.md) for the history of design decisions, debugging context and open
+items.

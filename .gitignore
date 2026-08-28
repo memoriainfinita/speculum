@@ -1,15 +1,18 @@
-# Historico del proyecto: versiones previas del fuente y los menus .bat que
-# precedieron a la interfaz grafica. Se conservan en disco, fuera del repo.
+# Project history: earlier versions of the source and the .bat menus that preceded
+# the graphical interface. Kept on disk, outside the repo.
 .archive/
 
-# Binario compilado. Se genera desde Speculum.cs con el comando del README
-# y se publica adjunto a cada release, no versionado: si no, cada recompilacion
-# duplica 30 KB en el historial y es facil que quede desfasado del fuente.
+# Compiled binary. Generated from Speculum.cs with the command in the README and
+# published attached to each release, not versioned: otherwise every rebuild
+# duplicates 30 KB in the history and it easily drifts from the source.
 Speculum.exe
 
-# Grabaciones que crea la app junto al ejecutable
+# Recordings the app creates next to the executable. 'Grabaciones' is the name the
+# folder had while the interface was in Spanish; the app renames it on startup, but
+# an old copy may still be around.
+Recordings/
 Grabaciones/
 
-# Vistas previas del generador de iconos: material de trabajo, se regeneran con
-# tools/make-icon.ps1. El .ico y docs/icon.png si van versionados.
+# Previews from the icon generator: working material, regenerated with
+# tools/make-icon.ps1. The .ico and docs/icon.png are versioned.
 tools/preview-*.png
