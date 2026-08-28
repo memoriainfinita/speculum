@@ -162,8 +162,11 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   sobre el directorio desde el que se lanzó, y sobrevive a la sesión que lo arrancó. Se
   libera con `adb kill-server`. Claude Code también abre handles sobre la carpeta mientras
   trabaja en ella, pero esos se sueltan al cerrar la sesión.
-- [ ] **Publicar el repo en GitHub** como `scrcpy-launcher`, y adjuntar el `.exe` a una
-  release en vez de versionarlo.
+- [x] **Repo publicado en GitHub** el 2026-08-28: `memoriainfinita/scrcpy-launcher`, en
+  privado por ahora. Rama `main` con `origin` configurado.
+- [ ] **Adjuntar el `.exe` a una release** y decidir cuando pasar el repo a publico. Antes
+  de hacerlo publico, revisar que `state.md` incluye IPs de la LAN (<phone-ip>/<pc-ip>) y el
+  modelo del movil.
 - [ ] **Pasar la app a inglés.** Toda la interfaz está en español: etiquetas, pestañas,
   tooltips, mensajes del registro y textos de ayuda. Afecta a las cadenas de
   `ScrcpyLauncher.cs`, no a la lógica. Decidir de paso si el README y `state.md` también
