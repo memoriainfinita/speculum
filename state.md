@@ -6,7 +6,10 @@ pruebas de clic reales sobre la ventana) y en uso diario por el propietario.
 
 Revisión de código del 2026-08-28: corregidos un cuelgue indefinido al leer la salida de
 los procesos, la falta de aviso cuando scrcpy no está instalado y la suposición de que la
-interfaz WiFi del móvil se llama `wlan0`. Ver TODO. Pendiente de publicar el repo.
+interfaz WiFi del móvil se llama `wlan0`. Corregido también que los procesos hijos
+heredaran el directorio de trabajo del launcher, lo que dejaba al servidor adb reteniendo
+la carpeta del `.exe` y bloqueando moverla o renombrarla. Ver TODO y Decisiones de diseño.
+Pendiente de publicar el repo.
 
 Entorno de la revisión: scrcpy **4.1** instalado con `winget install Genymobile.scrcpy` el
 2026-08-28 (no estaba en la máquina), y un <test-phone> (<codename>, Android 15) por USB.
@@ -25,13 +28,15 @@ perfectamente por línea de comandos, no hay ninguna forma cómoda de lanzarlo, 
 grabar, o conectar por WiFi sin escribir comandos cada vez.
 
 ## Estructura de archivos (esta carpeta)
-- `ScrcpyLauncher.exe` — el programa final, listo para ejecutar. Doble clic y ya.
 - `ScrcpyLauncher.cs` — código fuente en C# (WinForms). Un único archivo, sin dependencias
   externas más allá de .NET Framework (que ya viene con Windows).
-- `state.md` — este archivo.
-- `scrcpy-menu.bat` / `scrcpy-menu-completo.bat` — versiones previas basadas en menú de
-  consola (`.bat`), superadas por el `.exe` pero se conservan por si algún día hace falta
-  algo puramente de terminal sin interfaz gráfica.
+- `ScrcpyLauncher.exe` — el programa final, listo para ejecutar. Doble clic y ya. No está
+  versionado: se genera desde el `.cs` y se publica adjunto a cada release.
+- `README.md`, `LICENSE` (GPLv3), `.gitignore` y `state.md` (este archivo).
+- `docs/` — capturas de las cuatro pestañas, usadas por el README.
+- `.archive/` — fuera del repo: versiones previas del fuente y los dos menús de consola
+  (`scrcpy-menu.bat`, `scrcpy-menu-completo.bat`) que precedieron a la interfaz gráfica.
+- `Grabaciones/` — la crea la app junto al `.exe` al grabar. Fuera del repo.
 
 ## Cómo compilar el .exe desde el .cs
 No requiere Visual Studio ni el SDK de .NET. Usa el compilador de C# que ya trae Windows
@@ -234,12 +239,4 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   Verificado en pantalla: ya entra todo sin scroll.
 
 ## Pendiente / ideas no implementadas
-- Opciones de cámara (`--camera-*`), pantallas virtuales (`--new-display`) y apps
-  (`--start-app`) no tienen controles dedicados en la interfaz — solo son alcanzables vía
-  el campo de flags libres. Se dejaron fuera por ser uso poco frecuente para este caso de
-  uso (espejo de pantalla), no por limitación técnica.
 - No hay icono personalizado para el `.exe` (usa el icono por defecto de Windows Forms).
-- No se ha probado el flujo completo con un `.gitignore` para GitHub — al subir el
-  repositorio, probablemente convenga excluir `ScrcpyLauncher.exe` del control de
-  versiones (binario compilado) y dejar solo el `.cs`, o mantenerlo como release en vez de
-  commit. Decisión pendiente del propietario.
