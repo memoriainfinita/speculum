@@ -104,6 +104,9 @@ Con la cámara no hay control táctil: scrcpy captura vídeo, no la pantalla del
   la depuración USB normal.
 - **adb no se queda cerrado**: es normal. adb reinicia su servidor automáticamente en
   cuanto cualquier acción (incluida "Actualizar estado") vuelve a usarlo.
+- **adb se detiene al cerrar el launcher**: solo si no estaba corriendo cuando lo abriste.
+  Si ya estaba en marcha (Android Studio, otra terminal, otra ventana del launcher), la app
+  no lo toca al salir.
 
 ## Compilar desde el código fuente
 
