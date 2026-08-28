@@ -82,9 +82,9 @@ public class LauncherForm : Form
     public LauncherForm()
     {
         Text = "scrcpy Launcher";
-        ClientSize = new Size(620, 700);
+        ClientSize = new Size(620, 780);
         FormBorderStyle = FormBorderStyle.Sizable;
-        MinimumSize = new Size(640, 600);
+        MinimumSize = new Size(640, 680);
         StartPosition = FormStartPosition.CenterScreen;
 
         toolTip = new ToolTip { AutoPopDelay = 12000, InitialDelay = 300, ReshowDelay = 100, ShowAlways = true };
@@ -96,7 +96,7 @@ public class LauncherForm : Form
         btnRefrescar.Click += (s, e) => Refrescar();
         Controls.Add(btnRefrescar);
 
-        tabControl = new TabControl { Location = new Point(10, 40), Size = new Size(600, 305), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+        tabControl = new TabControl { Location = new Point(10, 40), Size = new Size(600, 380), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
         tabBasico = new TabPage("Basico");
         tabAvanzado = new TabPage("Avanzado");
         tabVentana = new TabPage("Ventana y captura");
@@ -112,7 +112,7 @@ public class LauncherForm : Form
         ConstruirTabVentana();
         ConstruirTabCamara();
 
-        int y = 355;
+        int y = 430;
         btnAbrir = new Button { Text = "Abrir scrcpy", Location = new Point(10, y), Size = new Size(120, 32) };
         btnAbrir.Click += (s, e) => Abrir();
         Controls.Add(btnAbrir);

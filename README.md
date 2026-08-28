@@ -5,6 +5,10 @@ Interfaz gráfica para Windows que envuelve [scrcpy](https://github.com/Genymobi
 ni tener que recordar flags de la línea de comandos.
 
 ![estado](https://img.shields.io/badge/estado-funcional-brightgreen)
+![licencia](https://img.shields.io/badge/licencia-GPL_v3-blue)
+![plataforma](https://img.shields.io/badge/plataforma-Windows-lightgrey)
+
+![Pestaña Básico de scrcpy Launcher: modo de apertura, conexión USB o WiFi, opciones y registro](docs/tab-basico.png)
 
 ## Requisitos
 
@@ -40,8 +44,8 @@ fuente](#compilar-desde-el-código-fuente), al final.
 
 Botones inferiores: **Abrir / Cerrar scrcpy**, **Reiniciar / Cerrar ADB** (el servidor que
 usa scrcpy para hablar con el móvil), **Grabaciones** (abre la carpeta donde se guardan), y
-un desplegable de herramientas informativas (versión, cámaras, codificadores, pantallas,
-apps instaladas del móvil).
+un desplegable de herramientas informativas (versión, codificadores, cámaras, tamaños de
+cámara, pantallas y apps instaladas del móvil).
 
 ### Pestaña Avanzado
 
@@ -50,6 +54,33 @@ como checkboxes y desplegables — no hace falta memorizar ningún flag. Los cam
 muestran un ejemplo dentro (p. ej. `ej: 8M`) y una explicación al pasar el ratón por
 encima. Un campo libre al final permite escribir cualquier flag de scrcpy no representado
 en la interfaz, tal cual se pondría en una terminal.
+
+![Pestaña Avanzado: opciones de vídeo, audio y control como checkboxes y desplegables](docs/tab-avanzado.png)
+
+### Pestaña Ventana y captura
+
+| Sección | Qué hace |
+|---|---|
+| Ventana de scrcpy | Posición, tamaño y título de la ventana al abrirse. Útil para dejarla siempre en el mismo sitio y capturarla con OBS sin recolocarla cada vez. También permite abrir sin ventana, para grabar o controlar por OTG |
+| Grabación | Formato del archivo (`mp4`, `mkv`, y los de solo audio) y rotación aplicada a la grabación. Se aplican a **Grabar esta sesión**, de la pestaña Básico |
+| Apps y pantallas | Abrir una app del móvil al conectar, crear una pantalla virtual nueva, o espejar una pantalla concreta por su id |
+
+![Pestaña Ventana y captura: posición y título de la ventana, formato de grabación, apps y pantallas](docs/tab-ventana.png)
+
+### Pestaña Cámara
+
+Usa la cámara del móvil como fuente de vídeo en vez de su pantalla: sirve para emplearlo
+como webcam. Se elige la cámara por id o por cara (frontal, trasera, externa), y se ajustan
+resolución, fps, relación de aspecto, zoom, modo de alta velocidad y la linterna.
+
+Al rellenar cualquier campo de esta pestaña, la fuente de vídeo pasa a `camera`
+automáticamente y se avisa en el registro — de lo contrario scrcpy ignoraría esas opciones
+sin decir nada. Para saber qué resoluciones admite tu móvil, usa **Listar tamaños de
+cámara** en el desplegable de herramientas.
+
+Con la cámara no hay control táctil: scrcpy captura vídeo, no la pantalla del móvil.
+
+![Pestaña Cámara: id, cara, tamaño, fps, relación, zoom, alta velocidad y linterna](docs/tab-camara.png)
 
 ## Conectar por WiFi
 

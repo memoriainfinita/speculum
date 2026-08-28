@@ -204,9 +204,14 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   (métrica 256), mandando el tráfico de la LAN por el túnel. El emparejado funcionó igual,
   pero la latencia al móvil era de 154 ms en el primer ping. Tras desinstalar Tailscale
   queda solo la ruta por Ethernet y baja a 3-5 ms estables.
-- [ ] **Revisar visualmente las dos pestañas nuevas.** La lógica está probada, pero el
-  aspecto (posiciones, solapes, textos cortados) no se ha mirado en pantalla: no se pudo
-  automatizar el cambio de pestaña para capturarlas.
+- [x] **Revisión visual de las pestañas nuevas** (2026-08-28). Cámara se veía bien. En
+  "Ventana y captura" el grupo "Apps y pantallas" salía cortado por abajo: los tres grupos
+  suman ~332 px y el `TabControl` tenía 305 px de alto fijo, así que a los campos de
+  pantalla nueva e id solo se llegaba haciendo scroll dentro de la pestaña. Agrandar la
+  ventana no servía: el `TabControl` está anclado `Top|Left|Right`, sin `Bottom`, y no
+  crece. Corregido subiendo el `TabControl` a 380 px, `ClientSize` a 620x780 y
+  `MinimumSize` a 640x680, y bajando botones, herramientas y registro de `y=355` a `y=430`.
+  Verificado en pantalla: ya entra todo sin scroll.
 
 ## Pendiente / ideas no implementadas
 - Opciones de cámara (`--camera-*`), pantallas virtuales (`--new-display`) y apps
