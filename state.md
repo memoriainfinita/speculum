@@ -132,6 +132,18 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   interfaz y dice que encienda el WiFi. Verificado contra el móvil: 12 casos de
   clasificación de IP más la ejecución real, que ahora devuelve `null` con el aviso.
 - [x] **`LICENSE`** GPLv3 añadida, la misma que acta y memoria. Hecho 2026-08-28.
+- [x] **Repositorio git iniciado** (2026-08-28). Rama `main`, commit inicial `48e73a6`.
+  Versionados `ScrcpyLauncher.cs`, `README.md`, `LICENSE`, `state.md` y `.gitignore`.
+  Fuera del control de versiones: `.archive/` (versiones previas del fuente y los dos
+  menús `.bat`, que se movieron ahí por estar superados por la interfaz gráfica),
+  `ScrcpyLauncher.exe` y la carpeta `Grabaciones/`. El README avisa de que el binario no
+  está en el repo y hay que descargarlo de las releases o compilarlo.
+- [ ] **Renombrar la carpeta a `scrcpy-launcher`.** Decidido, pero no se pudo hacer: la
+  sesión de Claude Code que trabajaba dentro bloqueaba el directorio (`claude.exe` y su
+  `pwsh.exe` lo retienen). Hay que hacerlo desde una sesión que no tenga esa carpeta como
+  directorio de trabajo. No afecta a git.
+- [ ] **Publicar el repo en GitHub** como `scrcpy-launcher`, y adjuntar el `.exe` a una
+  release en vez de versionarlo.
 - [ ] **Mejorar la interfaz.** Pendiente de definir alcance. Detectado de paso: la interfaz
   no lleva ni una tilde ("Basico", "Conexion", "Version", "Grabar esta sesion"). Cuando se
   aborde, corregirlas todas a la vez; hasta entonces los textos nuevos se escriben sin

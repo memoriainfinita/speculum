@@ -26,6 +26,10 @@ allá de .NET Framework, que ya viene con Windows.
 
 Doble clic en `ScrcpyLauncher.exe`. No hace falta instalación ni permisos de administrador.
 
+El repositorio contiene el código fuente, no el binario. Para obtener el `.exe`, descárgalo
+de las releases o compílalo tú mismo con una sola orden — ver [Compilar desde el código
+fuente](#compilar-desde-el-código-fuente), al final.
+
 ### Pestaña Básico
 
 | Sección | Qué hace |
