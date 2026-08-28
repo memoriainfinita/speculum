@@ -144,10 +144,15 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   directorio de trabajo. No afecta a git.
 - [ ] **Publicar el repo en GitHub** como `scrcpy-launcher`, y adjuntar el `.exe` a una
   release en vez de versionarlo.
+- [ ] **Pasar la app a inglés.** Toda la interfaz está en español: etiquetas, pestañas,
+  tooltips, mensajes del registro y textos de ayuda. Afecta a las cadenas de
+  `ScrcpyLauncher.cs`, no a la lógica. Decidir de paso si el README y `state.md` también
+  pasan a inglés, como en acta, o se quedan en español.
 - [ ] **Mejorar la interfaz.** Pendiente de definir alcance. Detectado de paso: la interfaz
-  no lleva ni una tilde ("Basico", "Conexion", "Version", "Grabar esta sesion"). Cuando se
-  aborde, corregirlas todas a la vez; hasta entonces los textos nuevos se escriben sin
-  tilde por coherencia.
+  no lleva ni una tilde ("Basico", "Conexion", "Version", "Grabar esta sesion"). Si se pasa
+  a inglés esto se resuelve solo, así que conviene hacer antes la traducción y no corregir
+  tildes que van a desaparecer. Hasta entonces, los textos nuevos se escriben sin tilde por
+  coherencia con el resto.
 - [x] **Cotejo de cobertura de flags.** Comparado el man page de scrcpy (master) contra
   `BuildFlags()`: 108 flags documentados, 42 cubiertos por la interfaz (39%). Los 66
   restantes, por área: cámara 9, ventana 10, conexión/adb 8, teclado/ratón 7, pantallas 6,
