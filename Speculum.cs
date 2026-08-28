@@ -87,6 +87,13 @@ public class LauncherForm : Form
     public LauncherForm()
     {
         Text = "Speculum";
+
+        // El icono va incrustado en el .exe con /win32icon (ver README). Extraerlo de ahi
+        // evita duplicarlo como recurso y garantiza que la barra de titulo, la barra de
+        // tareas y el Explorador muestren exactamente el mismo. Si falla, WinForms usa el
+        // suyo por defecto y no pasa nada.
+        try { this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); }
+        catch { }
         ClientSize = new Size(620, 780);
         FormBorderStyle = FormBorderStyle.Sizable;
         MinimumSize = new Size(640, 680);

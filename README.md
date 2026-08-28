@@ -1,4 +1,8 @@
+<img src="docs/icon.png" alt="" width="96" align="right">
+
 # Speculum
+
+*Speculum*, espejo en latín.
 
 Interfaz gráfica para Windows que envuelve [scrcpy](https://github.com/Genymobile/scrcpy)
 (espejo y control de pantalla de Android por USB o WiFi), para no depender de la terminal
@@ -114,7 +118,7 @@ El único archivo fuente es `Speculum.cs` (C#, WinForms). Se compila con el
 compilador de C# que ya trae Windows, sin necesidad de Visual Studio ni el SDK de .NET:
 
 ```
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /win32icon:speculum.ico /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
 ```
 
 ## Estado del proyecto

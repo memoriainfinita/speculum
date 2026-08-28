@@ -36,7 +36,9 @@ Sigue la convención de <workspace> de nombrar los proyectos con un sustantivo l
 - `Speculum.exe` — el programa final, listo para ejecutar. Doble clic y ya. No está
   versionado: se genera desde el `.cs` y se publica adjunto a cada release.
 - `README.md`, `LICENSE` (GPLv3), `.gitignore` y `state.md` (este archivo).
-- `docs/` — capturas de las cuatro pestañas, usadas por el README.
+- `speculum.ico` — icono de la app: espejo ovalado antiguo, cuatro tamaños.
+- `tools/make-icon.ps1` — genera el `.ico`. Requiere Windows PowerShell 5.1.
+- `docs/` — capturas de las cuatro pestañas y `icon.png`, usadas por el README.
 - `.archive/` — fuera del repo: versiones previas del fuente y los dos menús de consola
   (`scrcpy-menu.bat`, `scrcpy-menu-completo.bat`) que precedieron a la interfaz gráfica.
 - `Grabaciones/` — la crea la app junto al `.exe` al grabar. Fuera del repo.
@@ -46,7 +48,7 @@ No requiere Visual Studio ni el SDK de .NET. Usa el compilador de C# que ya trae
 (`csc.exe`, parte de .NET Framework):
 
 ```
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /win32icon:speculum.ico /out:Speculum.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll Speculum.cs
 ```
 
 (`Add-Type -OutputType WindowsApplication` de PowerShell **no** sirve para esto en
@@ -98,6 +100,20 @@ PowerShell 7/pwsh — solo funciona en Windows PowerShell 5.1 clásico. Por eso 
   lo arrancaría), y `FormClosing` hace `kill-server` solo si la app lo arrancó y no queda
   ningún scrcpy abierto. Verificado en las dos ramas: con adb parado de inicio, se detiene
   al cerrar; con adb ya corriendo, sigue vivo tras cerrar.
+- **Icono generado por script, no dibujado a mano**: `tools/make-icon.ps1` construye el
+  `.ico` con `System.Drawing`, sin dependencias externas, igual que el `.exe` se compila
+  solo con `csc.exe`. El icono queda reproducible y editable en vez de ser un binario
+  opaco. El script pide Windows PowerShell 5.1: `System.Drawing` no viene en pwsh 7.
+- **Un dibujo distinto por tamaño dentro del `.ico`**: el perlado del marco y los degradados
+  solo aparecen a 48 y 256 px; a 32 se quedan los degradados; a 16 solo la silueta, con el
+  óvalo engordado para comerse los márgenes y sin contorno interior, que a ese tamaño se
+  come el anillo por los dos lados. Un `.ico` es un contenedor de imágenes, no una imagen
+  escalada, y es lo que evita que el ornamento se convierta en barro gris en la barra de
+  tareas. Entradas de 16, 32 y 48 como mapa de bits y la de 256 como PNG (formato Vista):
+  comprobado que la entrada PNG de 256x256 sobrevive intacta dentro del `.exe`.
+- **El icono se incrusta con `/win32icon` y la ventana lo extrae del propio `.exe`**
+  (`Icon.ExtractAssociatedIcon`), en vez de incrustarlo por segunda vez como recurso. Un
+  solo origen para Explorador, barra de tareas y barra de título.
 
 ## Contexto de depuración relevante (por si reaparece)
 - Hubo un problema de conexión WiFi que **no era de scrcpy**: Tailscale tenía instalada una
@@ -247,6 +263,3 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   crece. Corregido subiendo el `TabControl` a 380 px, `ClientSize` a 620x780 y
   `MinimumSize` a 640x680, y bajando botones, herramientas y registro de `y=355` a `y=430`.
   Verificado en pantalla: ya entra todo sin scroll.
-
-## Pendiente / ideas no implementadas
-- No hay icono personalizado para el `.exe` (usa el icono por defecto de Windows Forms).

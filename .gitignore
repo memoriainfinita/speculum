@@ -9,3 +9,7 @@ Speculum.exe
 
 # Grabaciones que crea la app junto al ejecutable
 Grabaciones/
+
+# Vistas previas del generador de iconos: material de trabajo, se regeneran con
+# tools/make-icon.ps1. El .ico y docs/icon.png si van versionados.
+tools/preview-*.png
