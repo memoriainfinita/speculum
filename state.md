@@ -187,9 +187,10 @@ Detectados en la revisión de código del 2026-08-28, antes de publicar el repo.
   documentación ya usan el nombre nuevo; falta solo la carpeta, bloqueada por los handles
   de la sesión de Claude Code que hizo el cambio. Hacerlo con esa sesión cerrada. No afecta
   a git.
-- [ ] **Adjuntar el `.exe` a una release** y decidir cuando pasar el repo a publico. Antes
-  de hacerlo publico, revisar que `state.md` incluye IPs de la LAN (<phone-ip>/<pc-ip>) y el
-  modelo del movil.
+- [x] **Release `v1.0.0`** publicada el 2026-08-28 con `Speculum.exe` adjunto (84.480
+  bytes, SHA256 `2CA1290A...0238BCF`). El README ya apuntaba a las releases; ahora existen.
+- [ ] **Decidir cuando pasar el repo a publico.** Antes, revisar que este `state.md`
+  incluye IPs de la LAN (<phone-ip>/<pc-ip>) y el modelo del movil.
 - [ ] **Pasar la app a inglés.** Toda la interfaz está en español: etiquetas, pestañas,
   tooltips, mensajes del registro y textos de ayuda. Afecta a las cadenas de
   `Speculum.cs`, no a la lógica. Decidir de paso si el README y `state.md` también
