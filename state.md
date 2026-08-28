@@ -252,6 +252,37 @@ Found in the code review of 2026-08-28, before publishing the repo.
   program's own logic and public standards; the Xiaomi/HyperOS/MIUI mentions in the README,
   which are advice about a class of vendor and not about a device; and Tailscale, named
   because a reader hitting the same timeout needs to know what to look for.
+- [x] **Git history rewritten to match.** Done 2026-08-29. Scrubbing the working tree does
+  nothing for the history: `git show <old-commit>:state.md` still returned every address
+  and the phone model, which in a public repo is one `git log -p` away. Rewritten with
+  `git filter-repo --replace-text` plus `--replace-message` (one commit message named the
+  private workspace), mapping each string to a readable placeholder — `<phone-ip>`,
+  `<pc-ip>`, `<lan-subnet>`, `<cgnat-ip>`, `<test-phone>`, `<codename>` — rather than a
+  blanket redaction marker, so the old entries still read as prose.
+
+  The replacement list is ordered longest first: an address written with a prefix length
+  has to be consumed before the bare address, or the `/24` is left dangling next to the
+  placeholder. The RFC1918 constant in `Speculum.cs` is deliberately not in the list: it is
+  program logic, not data — which is also why the entries here quote no address at all,
+  since documenting the rule with the real examples would have put them straight back into
+  the file being cleaned.
+
+  **The tag was the trap.** `v1.0.0` pointed at the pre-rewrite commit, and a force push of
+  `main` alone would have left it there, keeping the whole old chain — data included —
+  reachable in the published repo, while looking clean from the branch. It was re-pointed
+  to the rewritten equivalent from `.git/filter-repo/commit-map` and force pushed too. The
+  release survives untouched: GitHub stores the asset outside git, so `Speculum.exe`
+  (84,480 bytes) is still attached.
+
+  Verified: the 13 commits are preserved (not squashed); no sensitive string is left in any
+  blob or commit message across every ref; and the tree at `HEAD` is the same object as
+  before the rewrite (`98a4dd2a…`), so nothing in the current state changed. A bundle of
+  the pre-rewrite repo was taken first and kept outside this folder.
+
+  Caveat worth knowing: GitHub keeps unreachable objects for a while after a force push,
+  and they stay reachable by direct SHA URL to anyone who has the old hash until it runs
+  garbage collection. Nothing here is a credential, so this is noted rather than acted on;
+  for an actual secret the answer is to rotate it, not just to rewrite.
 - [ ] **Decide when to make the repo public.** No blockers left in the documentation.
 - [ ] **Cut a `v1.1.0` release with the English app.** The `v1.0.0` asset is the Spanish
   build (SHA256 `2CA1290A...0238BCF`), and its release notes describe that version, so they
