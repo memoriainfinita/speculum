@@ -23,49 +23,47 @@ public class LauncherForm : Form
     private Button btnRefresh;
 
     private TabControl tabControl;
-    private TabPage tabBasic, tabAdvanced, tabWindow, tabCamera;
+    // One tab per thing you configure, not per how advanced it is. The earlier
+    // Basic/Advanced split sorted by the user's skill instead of by subject, and every
+    // feature ended up spread over several tabs: recording lived in three of them, and
+    // the video source sat on a different tab from the camera settings it governs.
+    private TabPage tabConnection, tabVideo, tabAudio, tabWindow, tabRecording, tabOther;
 
-    // Basic
-    private GroupBox grpMode;
-    private RadioButton rbNormal, rbFullscreen, rbBorderless, rbReadOnly;
-
-    private GroupBox grpConnection;
+    // Connection
     private RadioButton rbUsb, rbWifi;
     private Button btnConnectWifi, btnLowLatencyPreset;
 
-    private GroupBox grpOptions;
-    private CheckBox cbShowTouches, cbStayAwake, cbRecord;
-
-    // Advanced - Video
+    // Video
     private CheckBox cbNoVideo, cbNoVideoPlayback;
     private TextBox txtMaxSize, txtBitrate, txtMaxFps, txtCrop;
     private ComboBox cmbVideoCodec, cmbVideoSource, cmbDisplayOrientation;
-
-    // Advanced - Audio
-    private CheckBox cbNoAudio, cbNoAudioPlayback, cbAudioDup;
-    private ComboBox cmbAudioSource, cmbAudioCodec;
-    private TextBox txtAudioBitrate;
-
-    // Advanced - Control
-    private CheckBox cbOtg, cbTurnScreenOff, cbKeepActive, cbPowerOffOnClose, cbNoPowerOn;
-    private ComboBox cmbKeyboard, cmbMouse, cmbGamepad;
-
-    // Advanced - Other
-    private TextBox txtTimeLimit;
-    private ComboBox cmbVerbosity;
-    private CheckBox cbPrintFps, cbNoClipboardSync, cbKillAdbOnClose;
-
-    // Window and capture
-    private TextBox txtWindowX, txtWindowY, txtWindowWidth, txtWindowHeight, txtWindowTitle;
-    private CheckBox cbNoWindow;
-    private ComboBox cmbRecordFormat, cmbRecordOrientation;
-    private TextBox txtStartApp, txtNewDisplay, txtDisplayId;
-
-    // Camera
     private TextBox txtCameraId, txtCameraSize, txtCameraFps, txtCameraAr;
     private ComboBox cmbCameraFacing;
     private CheckBox cbCameraHighSpeed, cbCameraTorch;
     private TextBox txtCameraZoom;
+
+    // Audio
+    private CheckBox cbNoAudio, cbNoAudioPlayback, cbAudioDup;
+    private ComboBox cmbAudioSource, cmbAudioCodec;
+    private TextBox txtAudioBitrate;
+
+    // Window
+    private RadioButton rbNormal, rbFullscreen, rbBorderless, rbReadOnly;
+    private TextBox txtWindowX, txtWindowY, txtWindowWidth, txtWindowHeight, txtWindowTitle;
+    private CheckBox cbNoWindow;
+    private TextBox txtStartApp, txtNewDisplay, txtDisplayId;
+
+    // Recording
+    private CheckBox cbRecord;
+    private ComboBox cmbRecordFormat, cmbRecordOrientation;
+    private TextBox txtTimeLimit;
+
+    // Control and other
+    private CheckBox cbShowTouches, cbStayAwake;
+    private CheckBox cbOtg, cbTurnScreenOff, cbKeepActive, cbPowerOffOnClose, cbNoPowerOn;
+    private ComboBox cmbKeyboard, cmbMouse, cmbGamepad;
+    private ComboBox cmbVerbosity;
+    private CheckBox cbPrintFps, cbNoClipboardSync, cbKillAdbOnClose;
 
     private Button btnClearAdvanced;
     private Label lblExtra;
@@ -94,10 +92,36 @@ public class LauncherForm : Form
         // WinForms falls back to its default and nothing breaks.
         try { this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); }
         catch { }
-        ClientSize = new Size(620, 780);
+        // Vertical layout. The tab control is the part that has to be able to grow, and
+        // the log the part that must not: anchored the other way round, the log took every
+        // extra pixel of a bigger window while the tabs stayed cramped, so enlarging the
+        // window did nothing for the controls. Now the log keeps a fixed height at the
+        // bottom and the tab control takes whatever is left over.
+        const int topRow = 40;          // status label and refresh button
+        const int gap = 8;
+        const int logHeight = 208;
+        const int bottomBlock = 132 + logHeight + 10;   // buttons, tools, log, margin
+        const int tabsWanted = 380;     // the tallest tab is ~330 px plus its header
+        const int tabsMin = 150;        // below this the panels scroll instead
+
+        // Never open taller than the screen: on a laptop that would push the buttons under
+        // the taskbar with no way to reach them.
+        int chrome = 39;                // provisional; corrected below from the real frame
+        int maxClient = Screen.PrimaryScreen.WorkingArea.Height - chrome;
+        int clientH = Math.Min(topRow + tabsWanted + gap + bottomBlock, maxClient);
+        clientH = Math.Max(clientH, topRow + tabsMin + gap + bottomBlock);
+
         FormBorderStyle = FormBorderStyle.Sizable;
-        MinimumSize = new Size(640, 680);
+        ClientSize = new Size(620, clientH);
+        // Now that the form has its real frame, size the minimum from the actual chrome
+        // instead of a guess, and keep the minimum width equal to the default so the
+        // 10 px margins stay even on both sides.
+        int frameH = Height - ClientSize.Height;
+        int frameW = Width - ClientSize.Width;
+        MinimumSize = new Size(frameW + 620, frameH + topRow + tabsMin + gap + bottomBlock);
         StartPosition = FormStartPosition.CenterScreen;
+
+        int tabsH = clientH - topRow - gap - bottomBlock;
 
         toolTip = new ToolTip { AutoPopDelay = 12000, InitialDelay = 300, ReshowDelay = 100, ShowAlways = true };
 
@@ -108,46 +132,55 @@ public class LauncherForm : Form
         btnRefresh.Click += (s, e) => RefreshStatus();
         Controls.Add(btnRefresh);
 
-        tabControl = new TabControl { Location = new Point(10, 40), Size = new Size(600, 380), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
-        tabBasic = new TabPage("Basic");
-        tabAdvanced = new TabPage("Advanced");
-        tabWindow = new TabPage("Window and capture");
-        tabCamera = new TabPage("Camera");
-        tabControl.TabPages.Add(tabBasic);
-        tabControl.TabPages.Add(tabAdvanced);
+        tabControl = new TabControl { Location = new Point(10, topRow), Size = new Size(600, tabsH), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
+        tabConnection = new TabPage("Connection");
+        tabVideo = new TabPage("Video");
+        tabAudio = new TabPage("Audio");
+        tabWindow = new TabPage("Window");
+        tabRecording = new TabPage("Recording");
+        tabOther = new TabPage("Control and other");
+        tabControl.TabPages.Add(tabConnection);
+        tabControl.TabPages.Add(tabVideo);
+        tabControl.TabPages.Add(tabAudio);
         tabControl.TabPages.Add(tabWindow);
-        tabControl.TabPages.Add(tabCamera);
+        tabControl.TabPages.Add(tabRecording);
+        tabControl.TabPages.Add(tabOther);
         Controls.Add(tabControl);
 
-        BuildBasicTab();
-        BuildAdvancedTab();
+        BuildConnectionTab();
+        BuildVideoTab();
+        BuildAudioTab();
         BuildWindowTab();
-        BuildCameraTab();
+        BuildRecordingTab();
+        BuildOtherTab();
 
-        int y = 430;
-        btnStart = new Button { Text = "Start scrcpy", Location = new Point(10, y), Size = new Size(120, 32) };
+        // Everything below the tabs is anchored to the bottom edge, so it stays put while
+        // the tab control above it absorbs the space of a bigger window.
+        const AnchorStyles bottomLeft = AnchorStyles.Bottom | AnchorStyles.Left;
+        int y = clientH - bottomBlock;
+        btnStart = new Button { Text = "Start scrcpy", Location = new Point(10, y), Size = new Size(120, 32), Anchor = bottomLeft };
         btnStart.Click += (s, e) => Launch();
         Controls.Add(btnStart);
 
-        btnStop = new Button { Text = "Stop scrcpy", Location = new Point(140, y), Size = new Size(120, 32) };
+        btnStop = new Button { Text = "Stop scrcpy", Location = new Point(140, y), Size = new Size(120, 32), Anchor = bottomLeft };
         btnStop.Click += (s, e) => Stop();
         Controls.Add(btnStop);
 
-        btnRecordings = new Button { Text = "Recordings", Location = new Point(270, y), Size = new Size(120, 32) };
+        btnRecordings = new Button { Text = "Recordings", Location = new Point(270, y), Size = new Size(120, 32), Anchor = bottomLeft };
         btnRecordings.Click += (s, e) => OpenRecordingsFolder();
         Controls.Add(btnRecordings);
 
         y += 38;
-        btnRestartAdb = new Button { Text = "Restart ADB", Location = new Point(10, y), Size = new Size(120, 32) };
+        btnRestartAdb = new Button { Text = "Restart ADB", Location = new Point(10, y), Size = new Size(120, 32), Anchor = bottomLeft };
         btnRestartAdb.Click += (s, e) => RestartAdb();
         Controls.Add(btnRestartAdb);
 
-        btnStopAdb = new Button { Text = "Stop ADB", Location = new Point(140, y), Size = new Size(120, 32) };
+        btnStopAdb = new Button { Text = "Stop ADB", Location = new Point(140, y), Size = new Size(120, 32), Anchor = bottomLeft };
         btnStopAdb.Click += (s, e) => StopAdb();
         Controls.Add(btnStopAdb);
 
         y += 42;
-        cmbTools = new ComboBox { Location = new Point(10, y + 1), Size = new Size(380, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+        cmbTools = new ComboBox { Location = new Point(10, y + 1), Size = new Size(380, 23), DropDownStyle = ComboBoxStyle.DropDownList, Anchor = bottomLeft };
         cmbTools.Items.AddRange(new object[] {
             "scrcpy version",
             "List encoders",
@@ -159,24 +192,27 @@ public class LauncherForm : Form
         cmbTools.SelectedIndex = 0;
         Controls.Add(cmbTools);
 
-        btnRunTool = new Button { Text = "Run", Location = new Point(400, y), Size = new Size(100, 25) };
+        btnRunTool = new Button { Text = "Run", Location = new Point(400, y), Size = new Size(100, 25), Anchor = bottomLeft };
         btnRunTool.Click += (s, e) => RunTool();
         Controls.Add(btnRunTool);
 
         y += 32;
-        lblLog = new Label { Text = "Log:", Location = new Point(10, y), AutoSize = true };
+        lblLog = new Label { Text = "Log:", Location = new Point(10, y), AutoSize = true, Anchor = bottomLeft };
         Controls.Add(lblLog);
 
         y += 20;
         txtLog = new TextBox
         {
             Location = new Point(10, y),
-            Size = new Size(600, ClientSize.Height - y - 10),
+            Size = new Size(600, logHeight),
             Multiline = true,
             ReadOnly = true,
             ScrollBars = ScrollBars.Vertical,
             Font = new Font("Consolas", 8.5f),
-            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+            // Deliberately not anchored Top: were it, the log would take the extra height
+            // of a bigger window and the tabs would stay cramped, which is the bug this
+            // layout exists to fix.
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
         Controls.Add(txtLog);
 
@@ -189,42 +225,6 @@ public class LauncherForm : Form
         };
 
         FormClosing += (s, e) => StopAdbIfWeStartedIt();
-    }
-
-    private void BuildBasicTab()
-    {
-        grpMode = new GroupBox { Text = "Launch mode", Location = new Point(6, 6), Size = new Size(285, 150) };
-        rbNormal = new RadioButton { Text = "Normal", Location = new Point(10, 22), Checked = true, AutoSize = true };
-        rbFullscreen = new RadioButton { Text = "Fullscreen", Location = new Point(10, 48), AutoSize = true };
-        rbBorderless = new RadioButton { Text = "Borderless (for OBS)", Location = new Point(10, 74), AutoSize = true };
-        rbReadOnly = new RadioButton { Text = "Read-only (no control)", Location = new Point(10, 100), AutoSize = true };
-        grpMode.Controls.Add(rbNormal);
-        grpMode.Controls.Add(rbFullscreen);
-        grpMode.Controls.Add(rbBorderless);
-        grpMode.Controls.Add(rbReadOnly);
-        tabBasic.Controls.Add(grpMode);
-
-        grpConnection = new GroupBox { Text = "Connection", Location = new Point(300, 6), Size = new Size(285, 150) };
-        rbUsb = new RadioButton { Text = "USB", Location = new Point(10, 22), Checked = true, AutoSize = true };
-        rbWifi = new RadioButton { Text = "WiFi", Location = new Point(10, 48), AutoSize = true };
-        btnConnectWifi = new Button { Text = "Pair over WiFi (uses USB)", Location = new Point(10, 76), Size = new Size(260, 26) };
-        btnConnectWifi.Click += (s, e) => ConnectWifi();
-        btnLowLatencyPreset = new Button { Text = "Preset: low-latency WiFi", Location = new Point(10, 106), Size = new Size(260, 26) };
-        btnLowLatencyPreset.Click += (s, e) => ApplyLowLatencyPreset();
-        grpConnection.Controls.Add(rbUsb);
-        grpConnection.Controls.Add(rbWifi);
-        grpConnection.Controls.Add(btnConnectWifi);
-        grpConnection.Controls.Add(btnLowLatencyPreset);
-        tabBasic.Controls.Add(grpConnection);
-
-        grpOptions = new GroupBox { Text = "Options", Location = new Point(6, 162), Size = new Size(579, 70) };
-        cbShowTouches = new CheckBox { Text = "Show touches", Location = new Point(10, 28), AutoSize = true };
-        cbStayAwake = new CheckBox { Text = "Keep screen awake", Location = new Point(160, 28), AutoSize = true };
-        cbRecord = new CheckBox { Text = "Record this session", Location = new Point(360, 28), AutoSize = true };
-        grpOptions.Controls.Add(cbShowTouches);
-        grpOptions.Controls.Add(cbStayAwake);
-        grpOptions.Controls.Add(cbRecord);
-        tabBasic.Controls.Add(grpOptions);
     }
 
     private ComboBox NewCombo(string[] values, Point loc, int width)
@@ -242,15 +242,210 @@ public class LauncherForm : Form
         return c.SelectedItem.ToString();
     }
 
-    private void BuildWindowTab()
+    // Every tab hosts its controls in an AutoScroll panel, so a window smaller than the
+    // content scrolls instead of hiding it. At the default size nothing needs to.
+    private Panel NewTabPanel(TabPage page)
     {
         var pnl = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
-        tabWindow.Controls.Add(pnl);
+        page.Controls.Add(pnl);
+        return pnl;
+    }
 
-        int y = 6;
+    private void BuildConnectionTab()
+    {
+        var pnl = NewTabPanel(tabConnection);
 
-        // --- Window ---
-        var grpWindow = new GroupBox { Text = "scrcpy window", Location = new Point(6, y), Size = new Size(560, 115) };
+        var grp = new GroupBox { Text = "How to reach the phone", Location = new Point(6, 6), Size = new Size(560, 180) };
+
+        rbUsb = new RadioButton { Text = "USB", Location = new Point(10, 25), Checked = true, AutoSize = true };
+        rbWifi = new RadioButton { Text = "WiFi", Location = new Point(10, 51), AutoSize = true };
+        toolTip.SetToolTip(rbUsb, "Use the phone connected by cable (-d).");
+        toolTip.SetToolTip(rbWifi, "Use the phone over the network (-e). Pair it first with the button below.");
+
+        btnConnectWifi = new Button { Text = "Pair over WiFi (uses USB)", Location = new Point(10, 79), Size = new Size(260, 26) };
+        btnConnectWifi.Click += (s, e) => ConnectWifi();
+        btnLowLatencyPreset = new Button { Text = "Preset: low-latency WiFi", Location = new Point(10, 109), Size = new Size(260, 26) };
+        btnLowLatencyPreset.Click += (s, e) => ApplyLowLatencyPreset();
+        toolTip.SetToolTip(btnLowLatencyPreset, "Fills in bitrate, size and fps on the Video tab with values that cope "
+            + "with a weak signal. Nothing hidden: every value it sets is visible and editable there.");
+
+        // Let the label wrap on its own: hard line breaks inside a sentence fight the
+        // control width, and the last line ends up clipped as soon as the text grows.
+        var lblHint = new Label
+        {
+            Text = "Pairing needs the cable connected once. After that you can unplug it.\r\n\r\n"
+                 + "The phone forgets WiFi debugging when it reboots, so it has to be paired "
+                 + "again after a restart.\r\n\r\n"
+                 + "Use the ADB buttons below if the connection stops responding.",
+            Location = new Point(290, 25),
+            Size = new Size(260, 145),
+            ForeColor = SystemColors.GrayText
+        };
+
+        grp.Controls.Add(rbUsb); grp.Controls.Add(rbWifi);
+        grp.Controls.Add(btnConnectWifi); grp.Controls.Add(btnLowLatencyPreset);
+        grp.Controls.Add(lblHint);
+        pnl.Controls.Add(grp);
+    }
+
+    private void BuildVideoTab()
+    {
+        var pnl = NewTabPanel(tabVideo);
+
+        // --- Video ---
+        var grpVideo = new GroupBox { Text = "Video", Location = new Point(6, 6), Size = new Size(560, 145) };
+        cbNoVideo = new CheckBox { Text = "No video", Location = new Point(10, 20), AutoSize = true };
+        cbNoVideoPlayback = new CheckBox { Text = "No playback on PC", Location = new Point(220, 20), AutoSize = true };
+        grpVideo.Controls.Add(cbNoVideo);
+        grpVideo.Controls.Add(cbNoVideoPlayback);
+
+        var lblMaxSize = new Label { Text = "Max size (-m):", Location = new Point(10, 52), AutoSize = true };
+        txtMaxSize = new TextBox { Location = new Point(120, 49), Size = new Size(70, 20) };
+        var lblBitrate = new Label { Text = "Bitrate (-b):", Location = new Point(210, 52), AutoSize = true };
+        txtBitrate = new TextBox { Location = new Point(295, 49), Size = new Size(70, 20) };
+        var lblMaxFps = new Label { Text = "Max FPS:", Location = new Point(385, 52), AutoSize = true };
+        txtMaxFps = new TextBox { Location = new Point(450, 49), Size = new Size(60, 20) };
+        grpVideo.Controls.Add(lblMaxSize); grpVideo.Controls.Add(txtMaxSize);
+        grpVideo.Controls.Add(lblBitrate); grpVideo.Controls.Add(txtBitrate);
+        grpVideo.Controls.Add(lblMaxFps); grpVideo.Controls.Add(txtMaxFps);
+
+        var lblCodec = new Label { Text = "Video codec:", Location = new Point(10, 82), AutoSize = true };
+        cmbVideoCodec = NewCombo(new[] { "h264", "h265", "av1", "vp8", "vp9" }, new Point(100, 79), 120);
+        var lblVSource = new Label { Text = "Source:", Location = new Point(240, 82), AutoSize = true };
+        cmbVideoSource = NewCombo(new[] { "display", "camera" }, new Point(290, 79), 110);
+        grpVideo.Controls.Add(lblCodec); grpVideo.Controls.Add(cmbVideoCodec);
+        grpVideo.Controls.Add(lblVSource); grpVideo.Controls.Add(cmbVideoSource);
+
+        var lblCrop = new Label { Text = "Crop (w:h:x:y):", Location = new Point(10, 112), AutoSize = true };
+        txtCrop = new TextBox { Location = new Point(130, 109), Size = new Size(150, 20) };
+        var lblOrient = new Label { Text = "Orientation:", Location = new Point(300, 112), AutoSize = true };
+        cmbDisplayOrientation = NewCombo(new[] { "0", "90", "180", "270", "flip0", "flip90", "flip180", "flip270" }, new Point(375, 109), 130);
+        grpVideo.Controls.Add(lblCrop); grpVideo.Controls.Add(txtCrop);
+        grpVideo.Controls.Add(lblOrient); grpVideo.Controls.Add(cmbDisplayOrientation);
+
+        pnl.Controls.Add(grpVideo);
+
+        // --- Camera ---
+        // The camera settings sit under the video source they depend on: they only mean
+        // anything when the source is the camera, and the app switches it for you.
+        var grpCam = new GroupBox { Text = "Camera (used when the source above is 'camera')", Location = new Point(6, 159), Size = new Size(560, 175) };
+
+        var lblId = new Label { Text = "Camera id:", Location = new Point(10, 26), AutoSize = true };
+        txtCameraId = new TextBox { Location = new Point(100, 23), Size = new Size(60, 20) };
+        SetCue(txtCameraId, "e.g. 0");
+        toolTip.SetToolTip(txtCameraId, "Id of the camera to use. 'List cameras' shows the available ones. "
+            + "If set, the 'Facing' field is not needed.");
+        var lblFacing = new Label { Text = "Facing:", Location = new Point(190, 26), AutoSize = true };
+        cmbCameraFacing = NewCombo(new[] { "front", "back", "external" }, new Point(240, 23), 110);
+        toolTip.SetToolTip(cmbCameraFacing, "Picks the camera by its position instead of by id: front, back "
+            + "or external. Cannot be combined with 'Camera id'.");
+        grpCam.Controls.Add(lblId); grpCam.Controls.Add(txtCameraId);
+        grpCam.Controls.Add(lblFacing); grpCam.Controls.Add(cmbCameraFacing);
+
+        var lblSize = new Label { Text = "Size:", Location = new Point(10, 58), AutoSize = true };
+        txtCameraSize = new TextBox { Location = new Point(100, 55), Size = new Size(110, 20) };
+        SetCue(txtCameraSize, "e.g. 1920x1080");
+        toolTip.SetToolTip(txtCameraSize, "Capture resolution. Use 'List camera sizes' in the tools "
+            + "dropdown to see which ones your phone supports.");
+        var lblFps = new Label { Text = "FPS:", Location = new Point(230, 58), AutoSize = true };
+        txtCameraFps = new TextBox { Location = new Point(270, 55), Size = new Size(60, 20) };
+        SetCue(txtCameraFps, "e.g. 30");
+        var lblAr = new Label { Text = "Aspect ratio:", Location = new Point(350, 58), AutoSize = true };
+        txtCameraAr = new TextBox { Location = new Point(430, 55), Size = new Size(65, 20) };
+        SetCue(txtCameraAr, "e.g. 16:9");
+        toolTip.SetToolTip(txtCameraAr, "Aspect ratio: 16:9, 4:3, or a number such as 1.6. "
+            + "Applied by cropping what is left over.");
+        grpCam.Controls.Add(lblSize); grpCam.Controls.Add(txtCameraSize);
+        grpCam.Controls.Add(lblFps); grpCam.Controls.Add(txtCameraFps);
+        grpCam.Controls.Add(lblAr); grpCam.Controls.Add(txtCameraAr);
+
+        var lblZoom = new Label { Text = "Zoom:", Location = new Point(10, 90), AutoSize = true };
+        txtCameraZoom = new TextBox { Location = new Point(100, 87), Size = new Size(60, 20) };
+        SetCue(txtCameraZoom, "e.g. 2.0");
+        toolTip.SetToolTip(txtCameraZoom, "Optical/digital zoom level. 1.0 is no zoom.");
+        cbCameraHighSpeed = new CheckBox { Text = "High speed", Location = new Point(190, 89), AutoSize = true };
+        toolTip.SetToolTip(cbCameraHighSpeed, "Enables the phone's high frame rate recording mode. "
+            + "It heavily restricts the supported sizes and fps.");
+        cbCameraTorch = new CheckBox { Text = "Torch on", Location = new Point(330, 89), AutoSize = true };
+        toolTip.SetToolTip(cbCameraTorch, "Turns the flash on as a continuous light for as long as the capture lasts.");
+        grpCam.Controls.Add(lblZoom); grpCam.Controls.Add(txtCameraZoom);
+        grpCam.Controls.Add(cbCameraHighSpeed);
+        grpCam.Controls.Add(cbCameraTorch);
+
+        var lblCamNote = new Label
+        {
+            Text = "Filling in any of these switches the source above to 'camera' automatically.\r\n"
+                 + "There is no touch control from a camera: scrcpy captures video, not the screen.",
+            Location = new Point(10, 120),
+            Size = new Size(540, 40),
+            ForeColor = SystemColors.GrayText
+        };
+        grpCam.Controls.Add(lblCamNote);
+
+        pnl.Controls.Add(grpCam);
+
+        // Examples and explanations for the video fields
+        SetCue(txtMaxSize, "e.g. 1080");
+        SetCue(txtBitrate, "e.g. 8M");
+        SetCue(txtMaxFps, "e.g. 30");
+        SetCue(txtCrop, "e.g. 1080:1920:0:0");
+        toolTip.SetToolTip(txtMaxSize, "Limits the maximum width and height of the image in pixels (the other side adjusts on its own to keep the ratio).\nLower value = smoother but worse looking. Empty = no limit.");
+        toolTip.SetToolTip(txtBitrate, "Video quality/weight: a number followed by K (thousands) or M (millions) of bits per second.\nDefaults to 8M. For WiFi with a weak signal, try 2M.");
+        toolTip.SetToolTip(txtMaxFps, "Maximum frames per second of the capture. Empty = no limit. Typical values: 30 or 60.");
+        toolTip.SetToolTip(txtCrop, "Crops the screen that is sent. Format: width:height:x:y in pixels, relative to the natural orientation of the phone (usually portrait).");
+        toolTip.SetToolTip(cmbVideoCodec, "Codec the phone uses to compress the image. If you pick nothing, scrcpy uses its default (h264).");
+        toolTip.SetToolTip(cmbVideoSource, "What to capture: 'display' is the normal screen. 'camera' uses one of the phone cameras instead of the screen (requires Android 12+).");
+        toolTip.SetToolTip(cmbDisplayOrientation, "Rotates or flips the displayed image. The numbers are degrees of clockwise rotation; 'flip' mirrors it.");
+    }
+
+    private void BuildAudioTab()
+    {
+        var pnl = NewTabPanel(tabAudio);
+
+        var grpAudio = new GroupBox { Text = "Audio", Location = new Point(6, 6), Size = new Size(560, 115) };
+        cbNoAudio = new CheckBox { Text = "No audio", Location = new Point(10, 20), AutoSize = true };
+        cbNoAudioPlayback = new CheckBox { Text = "No playback on PC", Location = new Point(180, 20), AutoSize = true };
+        cbAudioDup = new CheckBox { Text = "Duplicate audio", Location = new Point(390, 20), AutoSize = true };
+        grpAudio.Controls.Add(cbNoAudio);
+        grpAudio.Controls.Add(cbNoAudioPlayback);
+        grpAudio.Controls.Add(cbAudioDup);
+
+        var lblASource = new Label { Text = "Audio source:", Location = new Point(10, 52), AutoSize = true };
+        cmbAudioSource = NewCombo(new[] { "output", "playback", "mic", "mic-unprocessed", "mic-camcorder", "mic-voice-recognition", "mic-voice-communication", "voice-call", "voice-call-uplink", "voice-call-downlink", "voice-performance" }, new Point(100, 49), 190);
+        var lblACodec = new Label { Text = "Codec:", Location = new Point(300, 52), AutoSize = true };
+        cmbAudioCodec = NewCombo(new[] { "opus", "aac", "flac", "raw" }, new Point(345, 49), 100);
+        grpAudio.Controls.Add(lblASource); grpAudio.Controls.Add(cmbAudioSource);
+        grpAudio.Controls.Add(lblACodec); grpAudio.Controls.Add(cmbAudioCodec);
+
+        var lblABitrate = new Label { Text = "Audio bitrate:", Location = new Point(10, 82), AutoSize = true };
+        txtAudioBitrate = new TextBox { Location = new Point(100, 79), Size = new Size(90, 20) };
+        grpAudio.Controls.Add(lblABitrate); grpAudio.Controls.Add(txtAudioBitrate);
+
+        pnl.Controls.Add(grpAudio);
+
+        SetCue(txtAudioBitrate, "e.g. 128K");
+        toolTip.SetToolTip(cmbAudioSource, "Where the audio comes from: 'output' is all the sound of the phone (the default), 'mic' is the microphone, and so on.");
+        toolTip.SetToolTip(cmbAudioCodec, "Audio compression format. Defaults to 'opus'.");
+        toolTip.SetToolTip(txtAudioBitrate, "Audio quality: a number followed by K or M. Defaults to 128K.");
+    }
+
+    private void BuildWindowTab()
+    {
+        var pnl = NewTabPanel(tabWindow);
+
+        // --- How it opens ---
+        var grpMode = new GroupBox { Text = "How the window opens", Location = new Point(6, 6), Size = new Size(560, 70) };
+        rbNormal = new RadioButton { Text = "Normal", Location = new Point(10, 30), Checked = true, AutoSize = true };
+        rbFullscreen = new RadioButton { Text = "Fullscreen", Location = new Point(100, 30), AutoSize = true };
+        rbBorderless = new RadioButton { Text = "Borderless (for OBS)", Location = new Point(210, 30), AutoSize = true };
+        rbReadOnly = new RadioButton { Text = "Read-only (no control)", Location = new Point(370, 30), AutoSize = true };
+        grpMode.Controls.Add(rbNormal); grpMode.Controls.Add(rbFullscreen);
+        grpMode.Controls.Add(rbBorderless); grpMode.Controls.Add(rbReadOnly);
+        toolTip.SetToolTip(rbReadOnly, "Mirrors the phone without sending it any click or keystroke.");
+        pnl.Controls.Add(grpMode);
+
+        // --- Position and title ---
+        var grpWindow = new GroupBox { Text = "Position, size and title", Location = new Point(6, 84), Size = new Size(560, 115) };
 
         var lblWx = new Label { Text = "Position X:", Location = new Point(10, 26), AutoSize = true };
         txtWindowX = new TextBox { Location = new Point(85, 23), Size = new Size(60, 20) };
@@ -284,27 +479,9 @@ public class LauncherForm : Form
         grpWindow.Controls.Add(cbNoWindow);
 
         pnl.Controls.Add(grpWindow);
-        y += grpWindow.Height + 8;
-
-        // --- Recording ---
-        var grpRec = new GroupBox { Text = "Recording", Location = new Point(6, y), Size = new Size(560, 80) };
-        var lblRf = new Label { Text = "Format:", Location = new Point(10, 30), AutoSize = true };
-        cmbRecordFormat = NewCombo(new[] { "mp4", "mkv", "m4a", "mka", "opus", "aac", "flac", "wav" }, new Point(75, 27), 100);
-        toolTip.SetToolTip(cmbRecordFormat, "Format of the recorded file. By default it is inferred from the "
-            + "file extension (.mp4). The audio-only ones (m4a, opus, flac, wav) require video to be disabled.");
-        var lblRo = new Label { Text = "Orientation:", Location = new Point(210, 30), AutoSize = true };
-        cmbRecordOrientation = NewCombo(new[] { "0", "90", "180", "270", "flip0", "flip90", "flip180", "flip270" }, new Point(295, 27), 120);
-        toolTip.SetToolTip(cmbRecordOrientation, "Rotation applied to the recorded file. It does not affect what you "
-            + "see on screen, only the recording.");
-        var lblRnote = new Label { Text = "These apply to 'Record this session', on the Basic tab.", Location = new Point(10, 56), AutoSize = true, ForeColor = SystemColors.GrayText };
-        grpRec.Controls.Add(lblRf); grpRec.Controls.Add(cmbRecordFormat);
-        grpRec.Controls.Add(lblRo); grpRec.Controls.Add(cmbRecordOrientation);
-        grpRec.Controls.Add(lblRnote);
-        pnl.Controls.Add(grpRec);
-        y += grpRec.Height + 8;
 
         // --- Apps and displays ---
-        var grpApps = new GroupBox { Text = "Apps and displays", Location = new Point(6, y), Size = new Size(560, 115) };
+        var grpApps = new GroupBox { Text = "What to show in it", Location = new Point(6, 207), Size = new Size(560, 115) };
 
         var lblSa = new Label { Text = "Start app:", Location = new Point(10, 26), AutoSize = true };
         txtStartApp = new TextBox { Location = new Point(95, 23), Size = new Size(230, 20) };
@@ -332,68 +509,41 @@ public class LauncherForm : Form
         pnl.Controls.Add(grpApps);
     }
 
-    private void BuildCameraTab()
+    private void BuildRecordingTab()
     {
-        var pnl = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
-        tabCamera.Controls.Add(pnl);
+        var pnl = NewTabPanel(tabRecording);
 
-        var lblNotice = new Label
-        {
-            Text = "Filling in any field on this tab switches the video source to 'camera' automatically.",
-            Location = new Point(8, 8),
-            Size = new Size(560, 18),
-            ForeColor = SystemColors.GrayText
-        };
-        pnl.Controls.Add(lblNotice);
+        // Recording used to be spread over three tabs: the checkbox on Basic, the format
+        // on Window and capture, and the time limit under Advanced/Other.
+        var grp = new GroupBox { Text = "Record the session to a file", Location = new Point(6, 6), Size = new Size(560, 120) };
 
-        var grp = new GroupBox { Text = "Phone camera", Location = new Point(6, 30), Size = new Size(560, 150) };
+        cbRecord = new CheckBox { Text = "Record this session", Location = new Point(10, 25), AutoSize = true };
+        toolTip.SetToolTip(cbRecord, "Saves the session to a file named with the date and time, in the "
+            + "Recordings folder next to the .exe.");
+        grp.Controls.Add(cbRecord);
 
-        var lblId = new Label { Text = "Camera id:", Location = new Point(10, 26), AutoSize = true };
-        txtCameraId = new TextBox { Location = new Point(100, 23), Size = new Size(60, 20) };
-        SetCue(txtCameraId, "e.g. 0");
-        toolTip.SetToolTip(txtCameraId, "Id of the camera to use. 'List cameras' shows the available ones. "
-            + "If set, the 'Facing' field is not needed.");
-        var lblFacing = new Label { Text = "Facing:", Location = new Point(190, 26), AutoSize = true };
-        cmbCameraFacing = NewCombo(new[] { "front", "back", "external" }, new Point(240, 23), 110);
-        toolTip.SetToolTip(cmbCameraFacing, "Picks the camera by its position instead of by id: front, back "
-            + "or external. Cannot be combined with 'Camera id'.");
-        grp.Controls.Add(lblId); grp.Controls.Add(txtCameraId);
-        grp.Controls.Add(lblFacing); grp.Controls.Add(cmbCameraFacing);
+        var lblRf = new Label { Text = "Format:", Location = new Point(10, 58), AutoSize = true };
+        cmbRecordFormat = NewCombo(new[] { "mp4", "mkv", "m4a", "mka", "opus", "aac", "flac", "wav" }, new Point(75, 55), 100);
+        toolTip.SetToolTip(cmbRecordFormat, "Format of the recorded file. By default it is inferred from the "
+            + "file extension (.mp4). The audio-only ones (m4a, opus, flac, wav) require video to be disabled.");
+        var lblRo = new Label { Text = "Orientation:", Location = new Point(210, 58), AutoSize = true };
+        cmbRecordOrientation = NewCombo(new[] { "0", "90", "180", "270", "flip0", "flip90", "flip180", "flip270" }, new Point(295, 55), 120);
+        toolTip.SetToolTip(cmbRecordOrientation, "Rotation applied to the recorded file. It does not affect what you "
+            + "see on screen, only the recording.");
+        grp.Controls.Add(lblRf); grp.Controls.Add(cmbRecordFormat);
+        grp.Controls.Add(lblRo); grp.Controls.Add(cmbRecordOrientation);
 
-        var lblSize = new Label { Text = "Size:", Location = new Point(10, 58), AutoSize = true };
-        txtCameraSize = new TextBox { Location = new Point(100, 55), Size = new Size(110, 20) };
-        SetCue(txtCameraSize, "e.g. 1920x1080");
-        toolTip.SetToolTip(txtCameraSize, "Capture resolution. Use 'List camera sizes' in the tools "
-            + "dropdown to see which ones your phone supports.");
-        var lblFps = new Label { Text = "FPS:", Location = new Point(230, 58), AutoSize = true };
-        txtCameraFps = new TextBox { Location = new Point(270, 55), Size = new Size(60, 20) };
-        SetCue(txtCameraFps, "e.g. 30");
-        var lblAr = new Label { Text = "Aspect ratio:", Location = new Point(350, 58), AutoSize = true };
-        txtCameraAr = new TextBox { Location = new Point(430, 55), Size = new Size(65, 20) };
-        SetCue(txtCameraAr, "e.g. 16:9");
-        toolTip.SetToolTip(txtCameraAr, "Aspect ratio: 16:9, 4:3, or a number such as 1.6. "
-            + "Applied by cropping what is left over.");
-        grp.Controls.Add(lblSize); grp.Controls.Add(txtCameraSize);
-        grp.Controls.Add(lblFps); grp.Controls.Add(txtCameraFps);
-        grp.Controls.Add(lblAr); grp.Controls.Add(txtCameraAr);
-
-        var lblZoom = new Label { Text = "Zoom:", Location = new Point(10, 90), AutoSize = true };
-        txtCameraZoom = new TextBox { Location = new Point(100, 87), Size = new Size(60, 20) };
-        SetCue(txtCameraZoom, "e.g. 2.0");
-        toolTip.SetToolTip(txtCameraZoom, "Optical/digital zoom level. 1.0 is no zoom.");
-        cbCameraHighSpeed = new CheckBox { Text = "High speed", Location = new Point(190, 89), AutoSize = true };
-        toolTip.SetToolTip(cbCameraHighSpeed, "Enables the phone's high frame rate recording mode. "
-            + "It heavily restricts the supported sizes and fps.");
-        cbCameraTorch = new CheckBox { Text = "Torch on", Location = new Point(330, 89), AutoSize = true };
-        toolTip.SetToolTip(cbCameraTorch, "Turns the flash on as a continuous light for as long as the capture lasts.");
-        grp.Controls.Add(lblZoom); grp.Controls.Add(txtCameraZoom);
-        grp.Controls.Add(cbCameraHighSpeed);
-        grp.Controls.Add(cbCameraTorch);
+        var lblTl = new Label { Text = "Time limit (s):", Location = new Point(10, 90), AutoSize = true };
+        txtTimeLimit = new TextBox { Location = new Point(110, 87), Size = new Size(60, 20) };
+        SetCue(txtTimeLimit, "e.g. 600");
+        toolTip.SetToolTip(txtTimeLimit, "Stops the session automatically after this many seconds, recording or not. "
+            + "Handy for fixed-length recordings.");
+        grp.Controls.Add(lblTl); grp.Controls.Add(txtTimeLimit);
 
         var lblNote = new Label
         {
-            Text = "The camera does not allow touch control: scrcpy captures video, not the phone screen.",
-            Location = new Point(10, 120),
+            Text = "The 'Recordings' button below opens the folder.",
+            Location = new Point(200, 90),
             AutoSize = true,
             ForeColor = SystemColors.GrayText
         };
@@ -402,152 +552,72 @@ public class LauncherForm : Form
         pnl.Controls.Add(grp);
     }
 
-    private void BuildAdvancedTab()
+    private void BuildOtherTab()
     {
-        var pnl = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
-        tabAdvanced.Controls.Add(pnl);
+        var pnl = NewTabPanel(tabOther);
 
-        int y = 6;
-
-        // --- Video ---
-        var grpVideo = new GroupBox { Text = "Advanced video", Location = new Point(6, y), Size = new Size(560, 145) };
-        cbNoVideo = new CheckBox { Text = "No video", Location = new Point(10, 20), AutoSize = true };
-        cbNoVideoPlayback = new CheckBox { Text = "No playback on PC", Location = new Point(220, 20), AutoSize = true };
-        grpVideo.Controls.Add(cbNoVideo);
-        grpVideo.Controls.Add(cbNoVideoPlayback);
-
-        var lblMaxSize = new Label { Text = "Max size (-m):", Location = new Point(10, 52), AutoSize = true };
-        txtMaxSize = new TextBox { Location = new Point(120, 49), Size = new Size(70, 20) };
-        var lblBitrate = new Label { Text = "Bitrate (-b):", Location = new Point(210, 52), AutoSize = true };
-        txtBitrate = new TextBox { Location = new Point(295, 49), Size = new Size(70, 20) };
-        var lblMaxFps = new Label { Text = "Max FPS:", Location = new Point(385, 52), AutoSize = true };
-        txtMaxFps = new TextBox { Location = new Point(450, 49), Size = new Size(60, 20) };
-        grpVideo.Controls.Add(lblMaxSize); grpVideo.Controls.Add(txtMaxSize);
-        grpVideo.Controls.Add(lblBitrate); grpVideo.Controls.Add(txtBitrate);
-        grpVideo.Controls.Add(lblMaxFps); grpVideo.Controls.Add(txtMaxFps);
-
-        var lblCodec = new Label { Text = "Video codec:", Location = new Point(10, 82), AutoSize = true };
-        cmbVideoCodec = NewCombo(new[] { "h264", "h265", "av1", "vp8", "vp9" }, new Point(100, 79), 120);
-        var lblVSource = new Label { Text = "Source:", Location = new Point(240, 82), AutoSize = true };
-        cmbVideoSource = NewCombo(new[] { "display", "camera" }, new Point(290, 79), 110);
-        grpVideo.Controls.Add(lblCodec); grpVideo.Controls.Add(cmbVideoCodec);
-        grpVideo.Controls.Add(lblVSource); grpVideo.Controls.Add(cmbVideoSource);
-
-        var lblCrop = new Label { Text = "Crop (w:h:x:y):", Location = new Point(10, 112), AutoSize = true };
-        txtCrop = new TextBox { Location = new Point(130, 109), Size = new Size(150, 20) };
-        var lblOrient = new Label { Text = "Orientation:", Location = new Point(300, 112), AutoSize = true };
-        cmbDisplayOrientation = NewCombo(new[] { "0", "90", "180", "270", "flip0", "flip90", "flip180", "flip270" }, new Point(375, 109), 130);
-        grpVideo.Controls.Add(lblCrop); grpVideo.Controls.Add(txtCrop);
-        grpVideo.Controls.Add(lblOrient); grpVideo.Controls.Add(cmbDisplayOrientation);
-
-        pnl.Controls.Add(grpVideo);
-        y += grpVideo.Height + 8;
-
-        // --- Audio ---
-        var grpAudio = new GroupBox { Text = "Advanced audio", Location = new Point(6, y), Size = new Size(560, 115) };
-        cbNoAudio = new CheckBox { Text = "No audio", Location = new Point(10, 20), AutoSize = true };
-        cbNoAudioPlayback = new CheckBox { Text = "No playback on PC", Location = new Point(180, 20), AutoSize = true };
-        cbAudioDup = new CheckBox { Text = "Duplicate audio", Location = new Point(390, 20), AutoSize = true };
-        grpAudio.Controls.Add(cbNoAudio);
-        grpAudio.Controls.Add(cbNoAudioPlayback);
-        grpAudio.Controls.Add(cbAudioDup);
-
-        var lblASource = new Label { Text = "Audio source:", Location = new Point(10, 52), AutoSize = true };
-        cmbAudioSource = NewCombo(new[] { "output", "playback", "mic", "mic-unprocessed", "mic-camcorder", "mic-voice-recognition", "mic-voice-communication", "voice-call", "voice-call-uplink", "voice-call-downlink", "voice-performance" }, new Point(100, 49), 190);
-        var lblACodec = new Label { Text = "Codec:", Location = new Point(300, 52), AutoSize = true };
-        cmbAudioCodec = NewCombo(new[] { "opus", "aac", "flac", "raw" }, new Point(345, 49), 100);
-        grpAudio.Controls.Add(lblASource); grpAudio.Controls.Add(cmbAudioSource);
-        grpAudio.Controls.Add(lblACodec); grpAudio.Controls.Add(cmbAudioCodec);
-
-        var lblABitrate = new Label { Text = "Audio bitrate:", Location = new Point(10, 82), AutoSize = true };
-        txtAudioBitrate = new TextBox { Location = new Point(100, 79), Size = new Size(90, 20) };
-        grpAudio.Controls.Add(lblABitrate); grpAudio.Controls.Add(txtAudioBitrate);
-
-        pnl.Controls.Add(grpAudio);
-        y += grpAudio.Height + 8;
-
-        // --- Control ---
-        var grpControl = new GroupBox { Text = "Advanced control", Location = new Point(6, y), Size = new Size(560, 115) };
-        cbOtg = new CheckBox { Text = "OTG mode", Location = new Point(10, 20), AutoSize = true };
-        cbTurnScreenOff = new CheckBox { Text = "Turn screen off on start", Location = new Point(120, 20), AutoSize = true };
-        cbKeepActive = new CheckBox { Text = "Simulate activity", Location = new Point(320, 20), AutoSize = true };
+        // --- Control and input ---
+        var grpControl = new GroupBox { Text = "Control and input", Location = new Point(6, 6), Size = new Size(560, 145) };
+        cbShowTouches = new CheckBox { Text = "Show touches", Location = new Point(10, 22), AutoSize = true };
+        cbStayAwake = new CheckBox { Text = "Keep screen awake", Location = new Point(150, 22), AutoSize = true };
+        cbOtg = new CheckBox { Text = "OTG mode", Location = new Point(330, 22), AutoSize = true };
+        grpControl.Controls.Add(cbShowTouches);
+        grpControl.Controls.Add(cbStayAwake);
         grpControl.Controls.Add(cbOtg);
+
+        cbTurnScreenOff = new CheckBox { Text = "Turn screen off on start", Location = new Point(10, 48), AutoSize = true };
+        cbPowerOffOnClose = new CheckBox { Text = "Turn screen off on close", Location = new Point(220, 48), AutoSize = true };
         grpControl.Controls.Add(cbTurnScreenOff);
+        grpControl.Controls.Add(cbPowerOffOnClose);
+
+        cbNoPowerOn = new CheckBox { Text = "Do not power on at start", Location = new Point(10, 74), AutoSize = true };
+        cbKeepActive = new CheckBox { Text = "Simulate activity", Location = new Point(220, 74), AutoSize = true };
+        grpControl.Controls.Add(cbNoPowerOn);
         grpControl.Controls.Add(cbKeepActive);
 
-        cbPowerOffOnClose = new CheckBox { Text = "Turn screen off on close", Location = new Point(10, 46), AutoSize = true };
-        cbNoPowerOn = new CheckBox { Text = "Do not power on at start", Location = new Point(220, 46), AutoSize = true };
-        grpControl.Controls.Add(cbPowerOffOnClose);
-        grpControl.Controls.Add(cbNoPowerOn);
-
-        var lblKeyboard = new Label { Text = "Keyboard:", Location = new Point(10, 80), AutoSize = true };
-        cmbKeyboard = NewCombo(new[] { "disabled", "sdk", "uhid", "aoa" }, new Point(80, 77), 100);
-        var lblMouse = new Label { Text = "Mouse:", Location = new Point(190, 80), AutoSize = true };
-        cmbMouse = NewCombo(new[] { "disabled", "sdk", "uhid", "aoa" }, new Point(240, 77), 100);
-        var lblGamepad = new Label { Text = "Gamepad:", Location = new Point(355, 80), AutoSize = true };
-        cmbGamepad = NewCombo(new[] { "disabled", "uhid", "aoa" }, new Point(420, 77), 100);
+        var lblKeyboard = new Label { Text = "Keyboard:", Location = new Point(10, 108), AutoSize = true };
+        cmbKeyboard = NewCombo(new[] { "disabled", "sdk", "uhid", "aoa" }, new Point(80, 105), 100);
+        var lblMouse = new Label { Text = "Mouse:", Location = new Point(190, 108), AutoSize = true };
+        cmbMouse = NewCombo(new[] { "disabled", "sdk", "uhid", "aoa" }, new Point(240, 105), 100);
+        var lblGamepad = new Label { Text = "Gamepad:", Location = new Point(355, 108), AutoSize = true };
+        cmbGamepad = NewCombo(new[] { "disabled", "uhid", "aoa" }, new Point(420, 105), 100);
         grpControl.Controls.Add(lblKeyboard); grpControl.Controls.Add(cmbKeyboard);
         grpControl.Controls.Add(lblMouse); grpControl.Controls.Add(cmbMouse);
         grpControl.Controls.Add(lblGamepad); grpControl.Controls.Add(cmbGamepad);
 
         pnl.Controls.Add(grpControl);
-        y += grpControl.Height + 8;
 
-        // --- Other ---
-        var grpOther = new GroupBox { Text = "Other", Location = new Point(6, y), Size = new Size(560, 85) };
-        var lblTimeLimit = new Label { Text = "Time limit (s):", Location = new Point(10, 22), AutoSize = true };
-        txtTimeLimit = new TextBox { Location = new Point(110, 19), Size = new Size(60, 20) };
-        var lblVerbosity = new Label { Text = "Verbosity:", Location = new Point(220, 22), AutoSize = true };
-        cmbVerbosity = NewCombo(new[] { "verbose", "debug", "info", "warn", "error" }, new Point(290, 19), 110);
-        grpOther.Controls.Add(lblTimeLimit); grpOther.Controls.Add(txtTimeLimit);
+        // --- Diagnostics ---
+        var grpOther = new GroupBox { Text = "Diagnostics", Location = new Point(6, 159), Size = new Size(560, 85) };
+        var lblVerbosity = new Label { Text = "Verbosity:", Location = new Point(10, 22), AutoSize = true };
+        cmbVerbosity = NewCombo(new[] { "verbose", "debug", "info", "warn", "error" }, new Point(80, 19), 110);
+        cbPrintFps = new CheckBox { Text = "FPS counter", Location = new Point(210, 22), AutoSize = true };
+        cbNoClipboardSync = new CheckBox { Text = "No clipboard sync", Location = new Point(330, 22), AutoSize = true };
         grpOther.Controls.Add(lblVerbosity); grpOther.Controls.Add(cmbVerbosity);
-
-        cbPrintFps = new CheckBox { Text = "FPS counter", Location = new Point(10, 50), AutoSize = true };
-        cbNoClipboardSync = new CheckBox { Text = "No clipboard sync", Location = new Point(140, 50), AutoSize = true };
-        cbKillAdbOnClose = new CheckBox { Text = "Kill adb on close", Location = new Point(360, 50), AutoSize = true };
         grpOther.Controls.Add(cbPrintFps);
         grpOther.Controls.Add(cbNoClipboardSync);
+
+        cbKillAdbOnClose = new CheckBox { Text = "Kill adb on close", Location = new Point(10, 50), AutoSize = true };
         grpOther.Controls.Add(cbKillAdbOnClose);
 
         pnl.Controls.Add(grpOther);
-        y += grpOther.Height + 8;
 
-        btnClearAdvanced = new Button { Text = "Clear all advanced options", Location = new Point(6, y), Size = new Size(200, 26) };
+        btnClearAdvanced = new Button { Text = "Clear every option", Location = new Point(6, 252), Size = new Size(200, 26) };
         btnClearAdvanced.Click += (s, e) => ClearAdvanced();
+        toolTip.SetToolTip(btnClearAdvanced, "Resets every field on every tab except the connection, so nothing is "
+            + "left set on a tab you are not looking at.");
         pnl.Controls.Add(btnClearAdvanced);
-        y += 34;
 
-        lblExtra = new Label { Text = "Extra flags not listed above (appended as typed):", Location = new Point(6, y), AutoSize = true };
+        lblExtra = new Label { Text = "Extra flags not listed anywhere above (appended as typed):", Location = new Point(6, 286), AutoSize = true };
         pnl.Controls.Add(lblExtra);
-        y += 20;
 
-        txtExtra = new TextBox { Location = new Point(6, y), Size = new Size(560, 23) };
+        txtExtra = new TextBox { Location = new Point(6, 306), Size = new Size(560, 23) };
         pnl.Controls.Add(txtExtra);
 
-        // Examples shown inside the empty boxes (they disappear as soon as you type)
-        SetCue(txtMaxSize, "e.g. 1080");
-        SetCue(txtBitrate, "e.g. 8M");
-        SetCue(txtMaxFps, "e.g. 30");
-        SetCue(txtCrop, "e.g. 1080:1920:0:0");
-        SetCue(txtAudioBitrate, "e.g. 128K");
-        SetCue(txtTimeLimit, "e.g. 600");
         SetCue(txtExtra, "e.g. --push-target=/sdcard/Download/");
-
-        // Explanation shown on hover
-        toolTip.SetToolTip(txtMaxSize, "Limits the maximum width and height of the image in pixels (the other side adjusts on its own to keep the ratio).\nLower value = smoother but worse looking. Empty = no limit.");
-        toolTip.SetToolTip(txtBitrate, "Video quality/weight: a number followed by K (thousands) or M (millions) of bits per second.\nDefaults to 8M. For WiFi with a weak signal, try 2M.");
-        toolTip.SetToolTip(txtMaxFps, "Maximum frames per second of the capture. Empty = no limit. Typical values: 30 or 60.");
-        toolTip.SetToolTip(txtCrop, "Crops the screen that is sent. Format: width:height:x:y in pixels, relative to the natural orientation of the phone (usually portrait).");
-        toolTip.SetToolTip(cmbVideoCodec, "Codec the phone uses to compress the image. If you pick nothing, scrcpy uses its default (h264).");
-        toolTip.SetToolTip(cmbVideoSource, "What to capture: 'display' is the normal screen. 'camera' uses one of the phone cameras instead of the screen (requires Android 12+).");
-        toolTip.SetToolTip(cmbDisplayOrientation, "Rotates or flips the displayed image. The numbers are degrees of clockwise rotation; 'flip' mirrors it.");
-        toolTip.SetToolTip(cmbAudioSource, "Where the audio comes from: 'output' is all the sound of the phone (the default), 'mic' is the microphone, and so on.");
-        toolTip.SetToolTip(cmbAudioCodec, "Audio compression format. Defaults to 'opus'.");
-        toolTip.SetToolTip(txtAudioBitrate, "Audio quality: a number followed by K or M. Defaults to 128K.");
         toolTip.SetToolTip(cmbKeyboard, "How key presses are sent to the phone.\n'sdk' = normal, recommended. 'uhid'/'aoa' simulate a physical keyboard, for special cases only.");
         toolTip.SetToolTip(cmbMouse, "How mouse clicks and movements are sent to the phone.\n'sdk' = normal, recommended.");
         toolTip.SetToolTip(cmbGamepad, "How the buttons of a physical controller plugged into the PC are sent. Requires a controller to be connected.");
-        toolTip.SetToolTip(txtTimeLimit, "Stops the mirroring/recording automatically after this many seconds. Handy for fixed-length recordings.");
         toolTip.SetToolTip(cmbVerbosity, "How much technical detail to show. It only affects the internal messages, not the image.");
         toolTip.SetToolTip(txtExtra, "Type here any scrcpy flag exactly as you would in a terminal, for anything not covered above.\nSeveral can be given separated by spaces. Example: --push-target=/sdcard/Download/");
     }
@@ -578,7 +648,7 @@ public class LauncherForm : Form
         cbCameraHighSpeed.Checked = false; cbCameraTorch.Checked = false;
 
         txtExtra.Text = "";
-        Log("Advanced options reset (including Window and capture, and Camera).");
+        Log("Every option reset, on all tabs except the connection.");
     }
 
     private void ApplyLowLatencyPreset()
@@ -586,8 +656,8 @@ public class LauncherForm : Form
         txtBitrate.Text = "2M";
         txtMaxSize.Text = "800";
         txtMaxFps.Text = "30";
-        tabControl.SelectedTab = tabAdvanced;
-        Log("Low-latency preset applied: bitrate 2M, max size 800, 30 fps (editable on the Advanced tab).");
+        tabControl.SelectedTab = tabVideo;
+        Log("Low-latency preset applied: bitrate 2M, max size 800, 30 fps (editable on the Video tab).");
     }
 
     private void Log(string text)
@@ -823,11 +893,11 @@ public class LauncherForm : Form
     {
         if (HasText(txtNewDisplay) && HasText(txtDisplayId))
             return "'New display' and 'existing display (id)' cannot be used at the same time. "
-                 + "Clear one of the two on the 'Window and capture' tab.";
+                 + "Clear one of the two on the 'Window' tab.";
 
         if (HasText(txtCameraId) && ComboValue(cmbCameraFacing) != "")
             return "'Camera id' and 'Facing' cannot be used at the same time. Clear one of the two "
-                 + "on the 'Camera' tab.";
+                 + "in the camera group on the 'Video' tab.";
 
         return null;
     }

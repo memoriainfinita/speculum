@@ -12,7 +12,11 @@ any attempt to move or rename it. See TODO and Design decisions.
 
 Translated to English on 2026-08-28: the interface, the source code, the README and this
 file. `tools/make-icon.ps1` followed on 2026-08-29, which leaves nothing in Spanish in the
-repo. Repo still to be made public.
+repo.
+
+**Public since 2026-08-29** at `memoriainfinita/speculum`, GPLv3, with `v1.1.0` as the
+current release. The personal data was taken out of both the documentation and the git
+history first — see the TODO for what was removed and how.
 
 Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
 2026-08-28 (it was not on the machine), and the test phone over USB — a MediaTek based
@@ -42,7 +46,7 @@ the convention of naming these projects with a real Latin noun.
 - `README.md`, `LICENSE` (GPLv3), `.gitignore` and `state.md` (this file).
 - `speculum.ico` — the app icon: an antique oval mirror, four sizes.
 - `tools/make-icon.ps1` — generates the `.ico`. Requires Windows PowerShell 5.1.
-- `docs/` — screenshots of the four tabs and `icon.png`, used by the README.
+- `docs/` — screenshots of the six tabs and `icon.png`, used by the README.
 - `.archive/` — outside the repo: earlier versions of the source and the two console menus
   (`scrcpy-menu.bat`, `scrcpy-menu-completo.bat`) that preceded the graphical interface.
 - `Recordings/` — created by the app next to the `.exe` when recording. Outside the repo.
@@ -63,33 +67,51 @@ Note for scripted builds: run it from PowerShell, not from Git Bash. Git Bash re
 'C:/Program Files/Git/nologo' could not be found`.
 
 ## What the interface does
-- **Basic tab**: launch mode (normal / fullscreen / borderless for OBS / read-only),
-  USB/WiFi selector, automatic WiFi pairing button, show touches, keep screen awake, record
-  the session with an automatic file name (date/time) in a `Recordings` folder next to the
-  `.exe`.
-- **Advanced tab**: checkboxes and dropdowns for practically every scrcpy option, grouped
-  by category (Video, Audio, Control, Other) — with no flag to type by hand. Every free
-  text field has a visible example inside it (e.g. "8M") and a tooltip with the full
-  explanation on hover. A free text field at the end covers any flag not represented in the
-  interface.
-- **Management**: start/stop scrcpy, restart or stop the adb server separately, see the
-  status of connected devices, informational tools (version, list cameras, encoders,
-  displays, installed apps).
+Six tabs, one per thing you configure. Every free text field has a visible example inside
+it (e.g. "8M") and a tooltip with the full explanation on hover, so no flag has to be typed
+from memory.
+
+- **Connection**: USB or WiFi, the automatic WiFi pairing button, and the low-latency
+  preset.
+- **Video**: source (screen or camera), codec, max size, bitrate, max fps, crop,
+  orientation — and, in a group underneath, the camera settings that source governs.
+- **Audio**: source, codec, bitrate, or no audio.
+- **Window**: how it opens (normal / fullscreen / borderless for OBS / read-only), its
+  position, size and title, and what to show in it (start an app, a new virtual display, or
+  an existing display by id).
+- **Recording**: record the session, format, rotation and time limit. Files get an
+  automatic name (date/time) in a `Recordings` folder next to the `.exe`.
+- **Control and other**: show touches, screen awake/off, OTG, keyboard/mouse/gamepad, then
+  diagnostics, the button that clears every option, and the free field for any flag not
+  represented in the interface.
+- **Always visible, outside the tabs**: start/stop scrcpy, restart or stop the adb server
+  separately, the status of connected devices, and informational tools (version, list
+  cameras, encoders, displays, installed apps). Launching a mirror needs no tab at all.
 
 ## Design decisions (why it is built this way)
 - **WinForms + csc.exe instead of a `.bat`**: the user asked for something "more
   comfortable" than a console menu — no black window flashing, with selectable controls
   instead of having to remember flag syntax.
-- **Advanced tab with real controls (not just free text)**: the first version had a single
-  text box for "advanced flags". The user explicitly asked for it to be selectable like the
-  rest, without having to memorise options — hence the checkboxes/dropdowns by category.
+- **Real controls, not a free-text box**: the first version had a single text box for
+  "advanced flags". The user explicitly asked for it to be selectable like the rest, without
+  having to memorise options — hence the checkboxes and dropdowns.
+- **Tabs organised by subject, not by difficulty**: the interface used to be Basic /
+  Advanced / Window and capture / Camera, which sorts by how expert the user is rather than
+  by what they are configuring. Because that axis does not match the tool, features leaked
+  across it: recording was split over three tabs (the checkbox on Basic, the format on
+  Window and capture, the time limit under Advanced/Other), and the video source sat on a
+  different tab from the camera settings it governs — with an automatic switch between them
+  that was invisible from either side. Now there is one tab per subject: Connection, Video
+  (camera included, in a group under the source), Audio, Window, Recording, Control and
+  other. The everyday path never needed the tabs anyway, since Start, Stop, Recordings and
+  the ADB buttons are fixed below them.
 - **Examples + tooltips on the text fields**: it was still unclear what format each field
   expected (bitrate, crop, etc.). A cue banner was added (the native Windows placeholder
   via `EM_SETCUEBANNER`) plus a `ToolTip` with the long explanation.
 - **"Stop ADB" button separate from "Restart ADB"**: the user asked whether there was a way
   to stop adb without restarting it. Important: adb restarts itself as soon as any action
   touches it again (standard behaviour of the tool, not fixable from the app).
-- **"Low-latency WiFi" preset**: it fills in the bitrate/size/fps fields on the Advanced tab
+- **"Low-latency WiFi" preset**: it fills in the bitrate/size/fps fields on the Video tab
   instead of applying hidden flags, so that there are no duplicates and no invisible magic —
   everything sent to scrcpy is visible and editable in the fields.
 - **Working directory of the child processes set to `%TEMP%`**: without `WorkingDirectory`,
@@ -283,12 +305,56 @@ Found in the code review of 2026-08-28, before publishing the repo.
   and they stay reachable by direct SHA URL to anyone who has the old hash until it runs
   garbage collection. Nothing here is a credential, so this is noted rather than acted on;
   for an actual secret the answer is to rotate it, not just to rewrite.
-- [ ] **Decide when to make the repo public.** No blockers left in the documentation.
-- [ ] **Cut a `v1.1.0` release with the English app.** The `v1.0.0` asset is the Spanish
-  build (SHA256 `2CA1290A...0238BCF`), and its release notes describe that version, so they
-  are deliberately left in Spanish: rewriting them would describe a binary that is not the
-  one attached. The current build is 84,480 bytes, SHA256 `DAA98E41...024051A3`.
-- [ ] **Improve the interface.** Scope still to be defined.
+- [x] **Release `v1.1.0` cut with the English app.** Done 2026-08-29, built from the
+  committed source with the working tree clean, 84,480 bytes, SHA256
+  `4179C77D...15ED8F19` — checked against the digest GitHub reports for the uploaded asset.
+  The `v1.0.0` notes are deliberately left in Spanish: they describe the Spanish binary,
+  which is still the one attached to that release, and rewriting them would describe
+  something that is not there.
+
+  Note for future releases: **`csc.exe` builds are not reproducible.** The same source
+  compiled twice gives the same 84,480 bytes but a different SHA256, because the PE header
+  carries a build timestamp and the assembly a fresh MVID. An earlier hash written down
+  here (`DAA98E41...`) was already stale by the time the release was cut. So the hash to
+  publish is the one from the exact binary being uploaded, taken right before uploading it,
+  and it is not evidence that a rebuild of the same commit will match.
+- [x] **Repo made public.** Done 2026-08-29, once the documentation and the history were
+  both clean. GPLv3 is recognised by GitHub from the `LICENSE` file, and the description is
+  in English.
+- [x] **Interface reorganised.** Done 2026-08-29. Two separate problems, and it is worth
+  keeping them apart because only the second one mattered.
+
+  *The layout could not grow.* The tab control was anchored `Top|Left|Right` at a fixed
+  380 px while the log was the only thing anchored to stretch, so every extra pixel of a
+  bigger window went to the log and the tabs stayed cramped — enlarging the window did
+  nothing for the controls. Fixed by anchoring the tab control on all four sides, pinning
+  the bottom block (buttons, tools, log) to the bottom edge, and giving the log a fixed
+  height. Measured before: Advanced held 572 px of content in 354 px of tab.
+
+  *The tabs were organised along the wrong axis.* Chasing the height was treating the
+  symptom. See the design decision above: Basic/Advanced sorts by user skill, not by
+  subject, and five features were split across tabs because of it. Reorganised into six
+  tabs by subject, which drops the tallest tab from 572 px to 334 px, so the scrolling
+  disappeared as a side effect rather than as the goal.
+
+  Worth recording, because it nearly sent the work the wrong way: on a 1920x1080 screen at
+  125% scaling the desktop is 1536x864 logical with an 834 px work area, and Windows caps a
+  sizable window at `MaxWindowTrackSize` (~884 px here) on top of that. The original
+  Advanced tab could therefore never have fitted on this machine at any window size — the
+  first plan, to make it fit by anchoring alone, was impossible before it was written.
+
+  Verified: clean compile; 33 automated checks against the real form — no overlapping
+  siblings, nothing clipped, no label whose text is taller than the label, the tools
+  dropdown still mapping to `RunTool`, `BuildFlags()` emitting identical flags, the
+  incompatible pairs still blocked, the tab control absorbing a resize while the log stays
+  fixed, and every tab fitting without scrolling; plus the six tabs captured to PNG and
+  looked at.
+
+  The label check was added because of a real miss: the hint on the Connection tab fitted
+  its parent perfectly and still had its last line cut off, because the *text* needed 117 px
+  in a 110 px label. No bounds check can see that — only the screenshot did. It is now
+  caught by measuring the text with `TextRenderer.MeasureText` against each fixed-size
+  label, and the check was confirmed against the old dimensions before trusting it.
 - [x] **Flag coverage audit.** Compared the scrcpy man page (master) against `BuildFlags()`:
   108 documented flags, 42 covered by the interface (39%). The remaining 66, by area:
   camera 9, window 10, connection/adb 8, keyboard/mouse 7, displays 6, codecs 5, buffers 4,
