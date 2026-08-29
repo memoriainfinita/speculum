@@ -16,3 +16,7 @@ Grabaciones/
 # Previews from the icon generator: working material, regenerated with
 # tools/make-icon.ps1. The .ico and docs/icon.png are versioned.
 tools/preview-*.png
+
+# Working notes for the project: design decisions, debugging context and session notes.
+# Kept on disk, out of the repo now that the project is finished.
+state.md

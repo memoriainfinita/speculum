@@ -145,5 +145,6 @@ C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /
 
 ## Project status
 
-See [`state.md`](state.md) for the history of design decisions, debugging context and open
-items.
+Working and in use. What changed in each version is in the
+[releases](https://github.com/memoriainfinita/speculum/releases), and the commit history
+carries the reasoning behind each change.
