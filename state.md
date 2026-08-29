@@ -14,9 +14,15 @@ Translated to English on 2026-08-28: the interface, the source code, the README 
 file. `tools/make-icon.ps1` followed on 2026-08-29, which leaves nothing in Spanish in the
 repo.
 
-**Public since 2026-08-29** at `memoriainfinita/speculum`, GPLv3, with `v1.1.0` as the
-current release. The personal data was taken out of both the documentation and the git
-history first — see the TODO for what was removed and how.
+**Public since 2026-08-29** at `memoriainfinita/speculum`, GPLv3. The personal data was
+taken out of both the documentation and the git history first — see the TODO for what was
+removed and how.
+
+The interface was reorganised into six tabs by subject on 2026-08-29, after the `v1.1.0`
+release. **The published release is therefore behind the source**: `v1.1.0` carries the
+four-tab build while the README documents six. A `v1.2.0` is pending, held back on purpose
+until the bottom strip is settled, so that one release covers both changes instead of two
+landing hours apart.
 
 Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
 2026-08-28 (it was not on the machine), and the test phone over USB — a MediaTek based
@@ -170,6 +176,20 @@ from memory.
   from `[Environment]::GetEnvironmentVariable('PATH','User')`.
 
 ## TODO
+
+### Open
+
+- [ ] **Rework the bottom strip.** The block below the tabs — Start/Stop, the ADB buttons,
+  the tools dropdown with its Run button, and the log — takes a fixed 350 px, 45% of the
+  window, and puts three different kinds of thing at the same visual weight: the action
+  pressed every time, maintenance pressed once a month, and diagnostics. The log alone is
+  208 px of it and is usually four lines of adb noise. Scope being defined; the tab reorg
+  of 2026-08-29 is the precedent — same principle, applied to what is left outside the tabs.
+- [ ] **Cut `v1.2.0`.** Held until the bottom strip is settled so one release covers both
+  changes. Remember that `csc.exe` output is not reproducible: take the SHA256 from the
+  exact binary being uploaded.
+
+### Done
 
 Found in the code review of 2026-08-28, before publishing the repo.
 
