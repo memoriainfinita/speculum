@@ -37,11 +37,10 @@ The repository holds the source code, not the binary. To get the `.exe`, downloa
 the releases or build it yourself with a single command — see [Building from
 source](#building-from-source), at the end.
 
-The window has one tab per thing you configure, and the buttons you press every day sit
-outside them, always visible: **Start / Stop scrcpy**, **Restart / Stop ADB** (the server
-scrcpy uses to talk to the phone), **Recordings** (opens the folder they are saved in), and
-a dropdown of informational tools (version, encoders, cameras, camera sizes, displays and
-the apps installed on the phone). Launching a mirror never requires opening a tab at all.
+The window has one tab per thing you configure. Outside the tabs there is only what you
+press every time: **Start / Stop scrcpy**, the current status, and a **Refresh** button,
+with the log underneath — small by default, and draggable by its divider when something
+needs reading. Launching a mirror never requires opening a tab at all.
 
 Every text field shows an example inside it (e.g. `e.g. 8M`) and a full explanation on
 hover, so there is no flag to memorise.
@@ -53,6 +52,10 @@ runs the whole pairing automatically, and a low-latency preset for a weak signal
 preset fills in the fields on the Video tab rather than applying anything hidden — every
 value it sets stays visible and editable.
 
+The **Restart / Stop ADB** buttons are here too: adb is how the connection is made, so its
+maintenance belongs with it. Note that adb restarts itself as soon as anything needs it
+again, so stopping it does not keep it stopped for long.
+
 ### Video
 
 Everything about the image: source (the phone screen or one of its cameras), codec, max
@@ -62,7 +65,7 @@ The camera settings live on this tab, in a group under the source they depend on
 facing, resolution, fps, aspect ratio, zoom, high speed mode and the torch. Filling in any
 of them switches the source to `camera` automatically and says so in the log — otherwise
 scrcpy would ignore them without a word. To find out which resolutions your phone supports,
-use **List camera sizes** in the tools dropdown. There is no touch control from a camera:
+use **Ask scrcpy** on the Control and other tab. There is no touch control from a camera:
 scrcpy captures video, not the screen.
 
 ![Video tab: video settings and, below them, the camera group they depend on](docs/tab-video.png)
@@ -89,15 +92,18 @@ new virtual display, or mirror a specific display by its id.
 
 Record the session to a file, its format and rotation, and a time limit that stops the
 session on its own. Files are named with the date and time and go to the `Recordings`
-folder next to the `.exe`; the **Recordings** button opens it.
+folder next to the `.exe`, and the button on this tab opens it.
 
 ### Control and other
 
 Input and screen behaviour: show touches, keep the screen awake or turn it off, OTG mode,
-and how keyboard, mouse and gamepad are sent to the phone. Then diagnostics — verbosity,
-FPS counter, clipboard sync — a button that clears every option on every tab, and a free
-field for any scrcpy flag not covered by the interface, typed exactly as you would in a
-terminal.
+and how keyboard, mouse and gamepad are sent to the phone.
+
+Then diagnostics: verbosity, FPS counter, clipboard sync, and **Ask scrcpy**, which runs
+scrcpy purely to ask it something — its version, or what encoders, cameras, camera sizes,
+displays and installed apps the phone has — and prints the answer in the log without
+mirroring anything. Last, a button that clears every option on every tab, and a free field
+for any scrcpy flag not covered by the interface, typed exactly as you would in a terminal.
 
 ![Control and other tab: input, screen behaviour, diagnostics and the free flags field](docs/tab-control-and-other.png)
 
@@ -121,7 +127,7 @@ terminal.
   enable "USB debugging (security settings)" in Developer options as well as plain USB
   debugging.
 - **adb will not stay stopped**: that is normal. adb restarts its server automatically as
-  soon as any action (including "Refresh status") uses it again.
+  soon as any action (including "Refresh") uses it again.
 - **adb stops when the launcher closes**: only if it was not running when you opened it. If
   it was already up (Android Studio, another terminal, another launcher window), the app
   leaves it alone on exit.

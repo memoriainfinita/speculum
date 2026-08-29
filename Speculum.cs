@@ -92,47 +92,43 @@ public class LauncherForm : Form
         // WinForms falls back to its default and nothing breaks.
         try { this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); }
         catch { }
-        // Vertical layout. The tab control is the part that has to be able to grow, and
-        // the log the part that must not: anchored the other way round, the log took every
-        // extra pixel of a bigger window while the tabs stayed cramped, so enlarging the
-        // window did nothing for the controls. Now the log keeps a fixed height at the
-        // bottom and the tab control takes whatever is left over.
-        const int topRow = 40;          // status label and refresh button
-        const int gap = 8;
-        const int logHeight = 208;
-        const int bottomBlock = 132 + logHeight + 10;   // buttons, tools, log, margin
-        const int tabsWanted = 380;     // the tallest tab is ~330 px plus its header
+        // Layout. What stays outside the tabs is only what gets pressed every time:
+        // Start, Stop and the status. Everything else moved to the tab whose subject it
+        // belongs to — the ADB buttons to Connection, Recordings to Recording, the tools
+        // dropdown to the Diagnostics group. The bottom strip used to be 350 px, 45% of
+        // the window, giving an action pressed every time, maintenance pressed once a
+        // month and diagnostics all the same visual weight, with a 208 px log presiding
+        // over the lot to show four lines of adb noise.
+        const int margin = 10;
+        const int actionBar = 32;
+        const int logHeight = 70;       // about four lines; drag the splitter for more
+        const int bottomPanel = actionBar + 8 + 16 + 2 + logHeight;
+        const int splitterH = 5;
+        const int tabsWanted = 400;     // the tallest tab is ~368 px plus its header
         const int tabsMin = 150;        // below this the panels scroll instead
 
         // Never open taller than the screen: on a laptop that would push the buttons under
         // the taskbar with no way to reach them.
         int chrome = 39;                // provisional; corrected below from the real frame
         int maxClient = Screen.PrimaryScreen.WorkingArea.Height - chrome;
-        int clientH = Math.Min(topRow + tabsWanted + gap + bottomBlock, maxClient);
-        clientH = Math.Max(clientH, topRow + tabsMin + gap + bottomBlock);
+        int clientH = Math.Min(margin + tabsWanted + splitterH + bottomPanel + margin, maxClient);
+        clientH = Math.Max(clientH, margin + tabsMin + splitterH + bottomPanel + margin);
 
         FormBorderStyle = FormBorderStyle.Sizable;
+        Padding = new Padding(margin);
         ClientSize = new Size(620, clientH);
         // Now that the form has its real frame, size the minimum from the actual chrome
         // instead of a guess, and keep the minimum width equal to the default so the
         // 10 px margins stay even on both sides.
         int frameH = Height - ClientSize.Height;
         int frameW = Width - ClientSize.Width;
-        MinimumSize = new Size(frameW + 620, frameH + topRow + tabsMin + gap + bottomBlock);
+        MinimumSize = new Size(frameW + 620, frameH + margin + tabsMin + splitterH + bottomPanel + margin);
         StartPosition = FormStartPosition.CenterScreen;
-
-        int tabsH = clientH - topRow - gap - bottomBlock;
 
         toolTip = new ToolTip { AutoPopDelay = 12000, InitialDelay = 300, ReshowDelay = 100, ShowAlways = true };
 
-        lblStatus = new Label { Text = "Checking status...", Location = new Point(10, 12), Size = new Size(440, 20) };
-        Controls.Add(lblStatus);
-
-        btnRefresh = new Button { Text = "Refresh status", Location = new Point(470, 8), Size = new Size(140, 26), Anchor = AnchorStyles.Top | AnchorStyles.Right };
-        btnRefresh.Click += (s, e) => RefreshStatus();
-        Controls.Add(btnRefresh);
-
-        tabControl = new TabControl { Location = new Point(10, topRow), Size = new Size(600, tabsH), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
+        // The tabs are docked to fill, so they take every pixel the bottom strip does not.
+        tabControl = new TabControl { Dock = DockStyle.Fill };
         tabConnection = new TabPage("Connection");
         tabVideo = new TabPage("Video");
         tabAudio = new TabPage("Audio");
@@ -154,67 +150,57 @@ public class LauncherForm : Form
         BuildRecordingTab();
         BuildOtherTab();
 
-        // Everything below the tabs is anchored to the bottom edge, so it stays put while
-        // the tab control above it absorbs the space of a bigger window.
-        const AnchorStyles bottomLeft = AnchorStyles.Bottom | AnchorStyles.Left;
-        int y = clientH - bottomBlock;
-        btnStart = new Button { Text = "Start scrcpy", Location = new Point(10, y), Size = new Size(120, 32), Anchor = bottomLeft };
+        // --- the strip that never moves ---
+        // The size is set before any child is added, not left to the dock: a right-anchored
+        // child records its distance to the right edge when it is added, so on a panel
+        // still at its default width the offset comes out negative and the control lands
+        // off the window once the dock widens it.
+        var pnlBottom = new Panel { Dock = DockStyle.Bottom, Size = new Size(600, bottomPanel) };
+
+        btnStart = new Button { Text = "Start scrcpy", Location = new Point(0, 0), Size = new Size(120, actionBar) };
         btnStart.Click += (s, e) => Launch();
-        Controls.Add(btnStart);
+        pnlBottom.Controls.Add(btnStart);
 
-        btnStop = new Button { Text = "Stop scrcpy", Location = new Point(140, y), Size = new Size(120, 32), Anchor = bottomLeft };
+        btnStop = new Button { Text = "Stop scrcpy", Location = new Point(130, 0), Size = new Size(120, actionBar) };
         btnStop.Click += (s, e) => Stop();
-        Controls.Add(btnStop);
+        pnlBottom.Controls.Add(btnStop);
 
-        btnRecordings = new Button { Text = "Recordings", Location = new Point(270, y), Size = new Size(120, 32), Anchor = bottomLeft };
-        btnRecordings.Click += (s, e) => OpenRecordingsFolder();
-        Controls.Add(btnRecordings);
+        // Status sits next to the buttons whose effect it reports, not in a corner of its
+        // own at the top of the window.
+        lblStatus = new Label
+        {
+            Text = "Checking status...",
+            Location = new Point(260, 8),
+            Size = new Size(220, 20),
+            TextAlign = ContentAlignment.MiddleRight,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
+        };
+        pnlBottom.Controls.Add(lblStatus);
 
-        y += 38;
-        btnRestartAdb = new Button { Text = "Restart ADB", Location = new Point(10, y), Size = new Size(120, 32), Anchor = bottomLeft };
-        btnRestartAdb.Click += (s, e) => RestartAdb();
-        Controls.Add(btnRestartAdb);
+        btnRefresh = new Button { Text = "Refresh", Location = new Point(490, 3), Size = new Size(110, 26), Anchor = AnchorStyles.Top | AnchorStyles.Right };
+        btnRefresh.Click += (s, e) => RefreshStatus();
+        pnlBottom.Controls.Add(btnRefresh);
 
-        btnStopAdb = new Button { Text = "Stop ADB", Location = new Point(140, y), Size = new Size(120, 32), Anchor = bottomLeft };
-        btnStopAdb.Click += (s, e) => StopAdb();
-        Controls.Add(btnStopAdb);
+        lblLog = new Label { Text = "Log — drag the divider above to make it taller", Location = new Point(0, 40), AutoSize = true, ForeColor = SystemColors.GrayText };
+        pnlBottom.Controls.Add(lblLog);
 
-        y += 42;
-        cmbTools = new ComboBox { Location = new Point(10, y + 1), Size = new Size(380, 23), DropDownStyle = ComboBoxStyle.DropDownList, Anchor = bottomLeft };
-        cmbTools.Items.AddRange(new object[] {
-            "scrcpy version",
-            "List encoders",
-            "List cameras",
-            "List camera sizes",
-            "List displays",
-            "List installed apps"
-        });
-        cmbTools.SelectedIndex = 0;
-        Controls.Add(cmbTools);
-
-        btnRunTool = new Button { Text = "Run", Location = new Point(400, y), Size = new Size(100, 25), Anchor = bottomLeft };
-        btnRunTool.Click += (s, e) => RunTool();
-        Controls.Add(btnRunTool);
-
-        y += 32;
-        lblLog = new Label { Text = "Log:", Location = new Point(10, y), AutoSize = true, Anchor = bottomLeft };
-        Controls.Add(lblLog);
-
-        y += 20;
         txtLog = new TextBox
         {
-            Location = new Point(10, y),
+            Location = new Point(0, 58),
             Size = new Size(600, logHeight),
             Multiline = true,
             ReadOnly = true,
             ScrollBars = ScrollBars.Vertical,
             Font = new Font("Consolas", 8.5f),
-            // Deliberately not anchored Top: were it, the log would take the extra height
-            // of a bigger window and the tabs would stay cramped, which is the bug this
-            // layout exists to fix.
-            Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
-        Controls.Add(txtLog);
+        pnlBottom.Controls.Add(txtLog);
+
+        // The splitter lets the log be dragged taller when something needs reading, and
+        // shrink back afterwards, instead of the layout having to guess one right height.
+        var split = new Splitter { Dock = DockStyle.Bottom, Height = splitterH, MinSize = 90, MinExtra = 220 };
+        Controls.Add(split);
+        Controls.Add(pnlBottom);
 
         Load += (s, e) =>
         {
@@ -286,6 +272,28 @@ public class LauncherForm : Form
         grp.Controls.Add(btnConnectWifi); grp.Controls.Add(btnLowLatencyPreset);
         grp.Controls.Add(lblHint);
         pnl.Controls.Add(grp);
+
+        // adb is how the connection is made, so its maintenance belongs here rather than
+        // in a permanent strip at the bottom of the window.
+        var grpAdb = new GroupBox { Text = "adb server", Location = new Point(6, 194), Size = new Size(560, 95) };
+
+        btnRestartAdb = new Button { Text = "Restart ADB", Location = new Point(10, 25), Size = new Size(130, 30) };
+        btnRestartAdb.Click += (s, e) => RestartAdb();
+        btnStopAdb = new Button { Text = "Stop ADB", Location = new Point(150, 25), Size = new Size(130, 30) };
+        btnStopAdb.Click += (s, e) => StopAdb();
+        grpAdb.Controls.Add(btnRestartAdb); grpAdb.Controls.Add(btnStopAdb);
+
+        var lblAdbNote = new Label
+        {
+            Text = "adb restarts itself as soon as anything needs it again, 'Refresh' included, "
+                 + "so stopping it does not keep it stopped for long.",
+            Location = new Point(10, 62),
+            Size = new Size(540, 28),
+            ForeColor = SystemColors.GrayText
+        };
+        grpAdb.Controls.Add(lblAdbNote);
+
+        pnl.Controls.Add(grpAdb);
     }
 
     private void BuildVideoTab()
@@ -333,7 +341,7 @@ public class LauncherForm : Form
         var lblId = new Label { Text = "Camera id:", Location = new Point(10, 26), AutoSize = true };
         txtCameraId = new TextBox { Location = new Point(100, 23), Size = new Size(60, 20) };
         SetCue(txtCameraId, "e.g. 0");
-        toolTip.SetToolTip(txtCameraId, "Id of the camera to use. 'List cameras' shows the available ones. "
+        toolTip.SetToolTip(txtCameraId, "Id of the camera to use. 'Ask scrcpy' on the Control and other tab lists them. "
             + "If set, the 'Facing' field is not needed.");
         var lblFacing = new Label { Text = "Facing:", Location = new Point(190, 26), AutoSize = true };
         cmbCameraFacing = NewCombo(new[] { "front", "back", "external" }, new Point(240, 23), 110);
@@ -345,8 +353,8 @@ public class LauncherForm : Form
         var lblSize = new Label { Text = "Size:", Location = new Point(10, 58), AutoSize = true };
         txtCameraSize = new TextBox { Location = new Point(100, 55), Size = new Size(110, 20) };
         SetCue(txtCameraSize, "e.g. 1920x1080");
-        toolTip.SetToolTip(txtCameraSize, "Capture resolution. Use 'List camera sizes' in the tools "
-            + "dropdown to see which ones your phone supports.");
+        toolTip.SetToolTip(txtCameraSize, "Capture resolution. Use 'Ask scrcpy' on the Control and other tab "
+            + "to list the sizes your phone supports.");
         var lblFps = new Label { Text = "FPS:", Location = new Point(230, 58), AutoSize = true };
         txtCameraFps = new TextBox { Location = new Point(270, 55), Size = new Size(60, 20) };
         SetCue(txtCameraFps, "e.g. 30");
@@ -487,7 +495,7 @@ public class LauncherForm : Form
         txtStartApp = new TextBox { Location = new Point(95, 23), Size = new Size(230, 20) };
         SetCue(txtStartApp, "e.g. org.videolan.vlc");
         toolTip.SetToolTip(txtStartApp, "Launches that app on the phone when connecting. Takes the package name. "
-            + "With a leading '?' it searches by name (e.g. ?VLC). Use 'List installed apps' to see them.");
+            + "With a leading '?' it searches by name (e.g. ?VLC). 'Ask scrcpy' can list them.");
         grpApps.Controls.Add(lblSa); grpApps.Controls.Add(txtStartApp);
 
         var lblNd = new Label { Text = "New display:", Location = new Point(10, 56), AutoSize = true };
@@ -498,8 +506,8 @@ public class LauncherForm : Form
         var lblDi = new Label { Text = "or existing display (id):", Location = new Point(260, 56), AutoSize = true };
         txtDisplayId = new TextBox { Location = new Point(410, 53), Size = new Size(60, 20) };
         SetCue(txtDisplayId, "e.g. 0");
-        toolTip.SetToolTip(txtDisplayId, "Mirrors a specific display of the phone. Use 'List displays' to see "
-            + "the available ids. Cannot be combined with 'New display'.");
+        toolTip.SetToolTip(txtDisplayId, "Mirrors a specific display of the phone. 'Ask scrcpy' lists the available "
+            + "ids. Cannot be combined with 'New display'.");
         grpApps.Controls.Add(lblNd); grpApps.Controls.Add(txtNewDisplay);
         grpApps.Controls.Add(lblDi); grpApps.Controls.Add(txtDisplayId);
 
@@ -515,7 +523,7 @@ public class LauncherForm : Form
 
         // Recording used to be spread over three tabs: the checkbox on Basic, the format
         // on Window and capture, and the time limit under Advanced/Other.
-        var grp = new GroupBox { Text = "Record the session to a file", Location = new Point(6, 6), Size = new Size(560, 120) };
+        var grp = new GroupBox { Text = "Record the session to a file", Location = new Point(6, 6), Size = new Size(560, 160) };
 
         cbRecord = new CheckBox { Text = "Record this session", Location = new Point(10, 25), AutoSize = true };
         toolTip.SetToolTip(cbRecord, "Saves the session to a file named with the date and time, in the "
@@ -540,10 +548,15 @@ public class LauncherForm : Form
             + "Handy for fixed-length recordings.");
         grp.Controls.Add(lblTl); grp.Controls.Add(txtTimeLimit);
 
+        // The button that opens the folder belongs next to the setting that fills it.
+        btnRecordings = new Button { Text = "Open Recordings folder", Location = new Point(10, 120), Size = new Size(180, 28) };
+        btnRecordings.Click += (s, e) => OpenRecordingsFolder();
+        grp.Controls.Add(btnRecordings);
+
         var lblNote = new Label
         {
-            Text = "The 'Recordings' button below opens the folder.",
-            Location = new Point(200, 90),
+            Text = "Files are named with the date and time, next to the .exe.",
+            Location = new Point(200, 126),
             AutoSize = true,
             ForeColor = SystemColors.GrayText
         };
@@ -588,7 +601,7 @@ public class LauncherForm : Form
         pnl.Controls.Add(grpControl);
 
         // --- Diagnostics ---
-        var grpOther = new GroupBox { Text = "Diagnostics", Location = new Point(6, 159), Size = new Size(560, 85) };
+        var grpOther = new GroupBox { Text = "Diagnostics", Location = new Point(6, 159), Size = new Size(560, 120) };
         var lblVerbosity = new Label { Text = "Verbosity:", Location = new Point(10, 22), AutoSize = true };
         cmbVerbosity = NewCombo(new[] { "verbose", "debug", "info", "warn", "error" }, new Point(80, 19), 110);
         cbPrintFps = new CheckBox { Text = "FPS counter", Location = new Point(210, 22), AutoSize = true };
@@ -600,18 +613,37 @@ public class LauncherForm : Form
         cbKillAdbOnClose = new CheckBox { Text = "Kill adb on close", Location = new Point(10, 50), AutoSize = true };
         grpOther.Controls.Add(cbKillAdbOnClose);
 
+        // Asking scrcpy what the phone supports is diagnostics, so it lives with the rest
+        // of it instead of competing with Start and Stop for attention.
+        var lblTools = new Label { Text = "Ask scrcpy:", Location = new Point(10, 87), AutoSize = true };
+        cmbTools = new ComboBox { Location = new Point(85, 84), Size = new Size(345, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+        cmbTools.Items.AddRange(new object[] {
+            "scrcpy version",
+            "List encoders",
+            "List cameras",
+            "List camera sizes",
+            "List displays",
+            "List installed apps"
+        });
+        cmbTools.SelectedIndex = 0;
+        btnRunTool = new Button { Text = "Run", Location = new Point(440, 83), Size = new Size(100, 25) };
+        btnRunTool.Click += (s, e) => RunTool();
+        toolTip.SetToolTip(cmbTools, "Runs scrcpy just to ask it something and prints the answer in the log. "
+            + "Nothing is mirrored and no setting on any tab is used.");
+        grpOther.Controls.Add(lblTools); grpOther.Controls.Add(cmbTools); grpOther.Controls.Add(btnRunTool);
+
         pnl.Controls.Add(grpOther);
 
-        btnClearAdvanced = new Button { Text = "Clear every option", Location = new Point(6, 252), Size = new Size(200, 26) };
+        btnClearAdvanced = new Button { Text = "Clear every option", Location = new Point(6, 287), Size = new Size(200, 26) };
         btnClearAdvanced.Click += (s, e) => ClearAdvanced();
         toolTip.SetToolTip(btnClearAdvanced, "Resets every field on every tab except the connection, so nothing is "
             + "left set on a tab you are not looking at.");
         pnl.Controls.Add(btnClearAdvanced);
 
-        lblExtra = new Label { Text = "Extra flags not listed anywhere above (appended as typed):", Location = new Point(6, 286), AutoSize = true };
+        lblExtra = new Label { Text = "Extra flags not listed anywhere above (appended as typed):", Location = new Point(6, 321), AutoSize = true };
         pnl.Controls.Add(lblExtra);
 
-        txtExtra = new TextBox { Location = new Point(6, 306), Size = new Size(560, 23) };
+        txtExtra = new TextBox { Location = new Point(6, 345), Size = new Size(560, 23) };
         pnl.Controls.Add(txtExtra);
 
         SetCue(txtExtra, "e.g. --push-target=/sdcard/Download/");
@@ -698,7 +730,7 @@ public class LauncherForm : Form
         Log("=== Cannot find " + missing + " in the system PATH ===");
         Log("scrcpy is not installed, or its folder is not in the PATH.");
         Log("To install it (adb included):    winget install Genymobile.scrcpy");
-        Log("Then close this window, open it again and press 'Refresh status'.");
+        Log("Then close this window, open it again and press 'Refresh'.");
         Log("");
         return false;
     }
@@ -973,7 +1005,7 @@ public class LauncherForm : Form
     {
         Log("Stopping the adb server...");
         Log(RunCommandSync("adb", "kill-server"));
-        Log("adb server stopped. Note: it will restart on its own as soon as any adb or scrcpy action runs (including 'Refresh status').");
+        Log("adb server stopped. Note: it will restart on its own as soon as any adb or scrcpy action runs (including 'Refresh').");
         bool running = Process.GetProcessesByName("adb").Length > 0;
         lblStatus.Text = "scrcpy: " + (Process.GetProcessesByName("scrcpy").Length > 0 ? "RUNNING" : "stopped") + " | adb: " + (running ? "up" : "down");
     }

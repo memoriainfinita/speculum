@@ -101,6 +101,17 @@ from memory.
 - **Real controls, not a free-text box**: the first version had a single text box for
   "advanced flags". The user explicitly asked for it to be selectable like the rest, without
   having to memorise options — hence the checkboxes and dropdowns.
+- **Only the everyday action stays outside the tabs**: the strip below them used to hold
+  Start/Stop, the ADB buttons, the tools dropdown with its Run button and the log — a fixed
+  350 px, 45% of the window, giving an action pressed every time, maintenance pressed once
+  a month and diagnostics all the same visual weight, with a 208 px log presiding over the
+  lot to show four lines of adb noise. It is the same mistake as the old tabs, in what had
+  been left outside them, so it got the same fix: the ADB buttons went to Connection (adb
+  is how the connection is made), the Recordings button to Recording (next to the setting
+  that fills the folder), and the tools dropdown to the Diagnostics group as "Ask scrcpy".
+  What is left is Start, Stop, the status and Refresh, over a log that starts at four lines
+  with a `Splitter` to drag it taller when something needs reading. The strip went from
+  350 px to 128 px and the default window from 778 px to 553 px.
 - **Tabs organised by subject, not by difficulty**: the interface used to be Basic /
   Advanced / Window and capture / Camera, which sorts by how expert the user is rather than
   by what they are configuring. Because that axis does not match the tool, features leaked
@@ -179,15 +190,8 @@ from memory.
 
 ### Open
 
-- [ ] **Rework the bottom strip.** The block below the tabs — Start/Stop, the ADB buttons,
-  the tools dropdown with its Run button, and the log — takes a fixed 350 px, 45% of the
-  window, and puts three different kinds of thing at the same visual weight: the action
-  pressed every time, maintenance pressed once a month, and diagnostics. The log alone is
-  208 px of it and is usually four lines of adb noise. Scope being defined; the tab reorg
-  of 2026-08-29 is the precedent — same principle, applied to what is left outside the tabs.
-- [ ] **Cut `v1.2.0`.** Held until the bottom strip is settled so one release covers both
-  changes. Remember that `csc.exe` output is not reproducible: take the SHA256 from the
-  exact binary being uploaded.
+- [ ] **Cut `v1.2.0`.** Remember that `csc.exe` output is not reproducible: take the SHA256
+  from the exact binary being uploaded.
 
 ### Done
 
@@ -375,6 +379,29 @@ Found in the code review of 2026-08-28, before publishing the repo.
   in a 110 px label. No bounds check can see that — only the screenshot did. It is now
   caught by measuring the text with `TextRenderer.MeasureText` against each fixed-size
   label, and the check was confirmed against the old dimensions before trusting it.
+- [x] **Bottom strip reworked.** Done 2026-08-29, right after the tabs and for the same
+  reason — see the design decision above. Layout is now docked rather than positioned by
+  hand: the tabs `Dock = Fill`, a `Splitter` and the strip `Dock = Bottom`, with the form's
+  `Padding` giving the margins.
+
+  Two things worth keeping:
+
+  *Size a panel before adding anchored children to it.* The status label and the Refresh
+  button are anchored to the right of the strip. Added while the panel still had its
+  default 200 px width, they recorded a negative distance to the right edge, so once the
+  dock widened it to 600 they landed at x≈890 — off the window entirely. Setting the
+  panel's `Size` at construction fixes it.
+
+  *That bug got through the checks and was caught by a screenshot.* The clipping check
+  deliberately skipped right-anchored controls, to avoid false positives on a parent that
+  had not been laid out — which is exactly the case where this fails. It now checks every
+  child against its parent's client area regardless of anchor, and the top/left edges too.
+
+  Docking order came out right first time: adding the `Fill` control first, then the
+  splitter, then the bottom panel gives tabs 10-410, splitter 410-415, strip 415-543.
+
+  Verified: clean compile; the full check suite; and the six tabs captured and looked at
+  again.
 - [x] **Flag coverage audit.** Compared the scrcpy man page (master) against `BuildFlags()`:
   108 documented flags, 42 covered by the interface (39%). The remaining 66, by area:
   camera 9, window 10, connection/adb 8, keyboard/mouse 7, displays 6, codecs 5, buffers 4,
