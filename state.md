@@ -18,10 +18,12 @@ repo.
 taken out of both the documentation and the git history first — see the TODO for what was
 removed and how.
 
-The interface was reorganised on 2026-08-29 — six tabs by subject, and only the everyday
-action left outside them — and published as `v1.2.0`, which is the current release and
-matches the source. `v1.1.0` carries the four-tab English build and `v1.0.0` the Spanish
-one; both are left as they are, since their notes describe the binaries actually attached.
+The interface was reorganised on 2026-08-29 — six tabs by subject, only the everyday action
+left outside them, and a tooltip on every control naming the flag it maps to. Current
+release is `v1.2.1`, which matches the source. Earlier releases are left as they are, since
+their notes describe the binaries actually attached to them: `v1.2.0` has the reorganised
+interface before the tooltip pass, `v1.1.0` the four-tab English build, `v1.0.0` the
+Spanish one.
 
 Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
 2026-08-28 (it was not on the machine), and the test phone over USB — a MediaTek based
@@ -392,6 +394,8 @@ Found in the code review of 2026-08-28, before publishing the repo.
   label, and the check was confirmed against the old dimensions before trusting it.
 - [x] **Release `v1.2.0`** published 2026-08-29 with both interface changes, 87,552 bytes,
   SHA256 `F6A64D50...684C938D`, checked against the digest GitHub reports for the asset.
+- [x] **Release `v1.2.1`** published 2026-08-29 with the tooltip pass, 98,816 bytes,
+  SHA256 `230CE851...D7CE3FEE`, checked against the digest GitHub reports for the asset.
 - [x] **Tooltips everywhere.** Done 2026-08-29. An audit of the real form found 59%
   coverage: 41 controls with a tooltip and 28 without, including the camera FPS field, which
   had an example inside it but had never had an explanation. All 69 have one now, written to
