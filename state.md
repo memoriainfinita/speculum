@@ -18,11 +18,10 @@ repo.
 taken out of both the documentation and the git history first — see the TODO for what was
 removed and how.
 
-The interface was reorganised into six tabs by subject on 2026-08-29, after the `v1.1.0`
-release. **The published release is therefore behind the source**: `v1.1.0` carries the
-four-tab build while the README documents six. A `v1.2.0` is pending, held back on purpose
-until the bottom strip is settled, so that one release covers both changes instead of two
-landing hours apart.
+The interface was reorganised on 2026-08-29 — six tabs by subject, and only the everyday
+action left outside them — and published as `v1.2.0`, which is the current release and
+matches the source. `v1.1.0` carries the four-tab English build and `v1.0.0` the Spanish
+one; both are left as they are, since their notes describe the binaries actually attached.
 
 Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
 2026-08-28 (it was not on the machine), and the test phone over USB — a MediaTek based
@@ -190,8 +189,7 @@ from memory.
 
 ### Open
 
-- [ ] **Cut `v1.2.0`.** Remember that `csc.exe` output is not reproducible: take the SHA256
-  from the exact binary being uploaded.
+Nothing outstanding.
 
 ### Done
 
@@ -379,6 +377,8 @@ Found in the code review of 2026-08-28, before publishing the repo.
   in a 110 px label. No bounds check can see that — only the screenshot did. It is now
   caught by measuring the text with `TextRenderer.MeasureText` against each fixed-size
   label, and the check was confirmed against the old dimensions before trusting it.
+- [x] **Release `v1.2.0`** published 2026-08-29 with both interface changes, 87,552 bytes,
+  SHA256 `F6A64D50...684C938D`, checked against the digest GitHub reports for the asset.
 - [x] **Bottom strip reworked.** Done 2026-08-29, right after the tabs and for the same
   reason — see the design decision above. Layout is now docked rather than positioned by
   hand: the tabs `Dock = Fill`, a `Splitter` and the strip `Dock = Bottom`, with the form's
