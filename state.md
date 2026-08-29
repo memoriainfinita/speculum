@@ -25,6 +25,15 @@ their notes describe the binaries actually attached to them: `v1.2.0` has the re
 interface before the tooltip pass, `v1.1.0` the four-tab English build, `v1.0.0` the
 Spanish one.
 
+**Finished on 2026-08-29.** The repository housekeeping that was left open is closed: the
+tags `v1.1.0`, `v1.2.0` and `v1.2.1` existed only on the remote, since `gh release` creates
+them there, and were fetched into the local clone, which until then had `v1.0.0` alone;
+`main` now tracks `origin/main`; and the repo has topics on GitHub (`scrcpy`, `android`,
+`windows`, `winforms`, `csharp`, `screen-mirroring`, `adb`), which it had none of. The
+folder moved from `1_in-progress` to `2_finished`. `state.md` stays under version control
+in the public repo instead of leaving it as the CODELAB pattern says: the README links to
+it as the project's design record.
+
 Review environment: scrcpy **4.1**, installed with `winget install Genymobile.scrcpy` on
 2026-08-28 (it was not on the machine), and the test phone over USB — a MediaTek based
 Android 15 device, which is what makes the interface naming below relevant.
