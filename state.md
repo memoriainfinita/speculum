@@ -76,22 +76,24 @@ Six tabs, one per thing you configure. Every free text field has a visible examp
 it (e.g. "8M") and a tooltip with the full explanation on hover, so no flag has to be typed
 from memory.
 
-- **Connection**: USB or WiFi, the automatic WiFi pairing button, and the low-latency
-  preset.
+- **Connection**: USB or WiFi, the automatic WiFi pairing button, the low-latency preset,
+  and the adb server buttons.
 - **Video**: source (screen or camera), codec, max size, bitrate, max fps, crop,
   orientation — and, in a group underneath, the camera settings that source governs.
 - **Audio**: source, codec, bitrate, or no audio.
 - **Window**: how it opens (normal / fullscreen / borderless for OBS / read-only), its
   position, size and title, and what to show in it (start an app, a new virtual display, or
   an existing display by id).
-- **Recording**: record the session, format, rotation and time limit. Files get an
-  automatic name (date/time) in a `Recordings` folder next to the `.exe`.
+- **Recording**: record the session, format, rotation, time limit, and the button that
+  opens the folder. Files get an automatic name (date/time) in a `Recordings` folder next
+  to the `.exe`.
 - **Control and other**: show touches, screen awake/off, OTG, keyboard/mouse/gamepad, then
-  diagnostics, the button that clears every option, and the free field for any flag not
-  represented in the interface.
-- **Always visible, outside the tabs**: start/stop scrcpy, restart or stop the adb server
-  separately, the status of connected devices, and informational tools (version, list
-  cameras, encoders, displays, installed apps). Launching a mirror needs no tab at all.
+  diagnostics — including "Ask scrcpy", which queries the phone for its cameras, sizes,
+  displays, encoders and apps — the button that clears every option, and the free field for
+  any flag not represented in the interface.
+- **Always visible, outside the tabs**: Start and Stop, the status, and Refresh, over a log
+  that starts at about four lines and can be dragged taller by its divider. Launching a
+  mirror needs no tab at all.
 
 ## Design decisions (why it is built this way)
 - **WinForms + csc.exe instead of a `.bat`**: the user asked for something "more
