@@ -202,6 +202,9 @@ public class LauncherForm : Form
         Controls.Add(split);
         Controls.Add(pnlBottom);
 
+        // Called last: the strip's controls have to exist before they can be given one.
+        SetUpTooltips();
+
         Load += (s, e) =>
         {
             // Before RefreshStatus(), which queries adb and would therefore start it.
@@ -245,15 +248,11 @@ public class LauncherForm : Form
 
         rbUsb = new RadioButton { Text = "USB", Location = new Point(10, 25), Checked = true, AutoSize = true };
         rbWifi = new RadioButton { Text = "WiFi", Location = new Point(10, 51), AutoSize = true };
-        toolTip.SetToolTip(rbUsb, "Use the phone connected by cable (-d).");
-        toolTip.SetToolTip(rbWifi, "Use the phone over the network (-e). Pair it first with the button below.");
 
         btnConnectWifi = new Button { Text = "Pair over WiFi (uses USB)", Location = new Point(10, 79), Size = new Size(260, 26) };
         btnConnectWifi.Click += (s, e) => ConnectWifi();
         btnLowLatencyPreset = new Button { Text = "Preset: low-latency WiFi", Location = new Point(10, 109), Size = new Size(260, 26) };
         btnLowLatencyPreset.Click += (s, e) => ApplyLowLatencyPreset();
-        toolTip.SetToolTip(btnLowLatencyPreset, "Fills in bitrate, size and fps on the Video tab with values that cope "
-            + "with a weak signal. Nothing hidden: every value it sets is visible and editable there.");
 
         // Let the label wrap on its own: hard line breaks inside a sentence fight the
         // control width, and the last line ends up clipped as soon as the text grows.
@@ -341,28 +340,20 @@ public class LauncherForm : Form
         var lblId = new Label { Text = "Camera id:", Location = new Point(10, 26), AutoSize = true };
         txtCameraId = new TextBox { Location = new Point(100, 23), Size = new Size(60, 20) };
         SetCue(txtCameraId, "e.g. 0");
-        toolTip.SetToolTip(txtCameraId, "Id of the camera to use. 'Ask scrcpy' on the Control and other tab lists them. "
-            + "If set, the 'Facing' field is not needed.");
         var lblFacing = new Label { Text = "Facing:", Location = new Point(190, 26), AutoSize = true };
         cmbCameraFacing = NewCombo(new[] { "front", "back", "external" }, new Point(240, 23), 110);
-        toolTip.SetToolTip(cmbCameraFacing, "Picks the camera by its position instead of by id: front, back "
-            + "or external. Cannot be combined with 'Camera id'.");
         grpCam.Controls.Add(lblId); grpCam.Controls.Add(txtCameraId);
         grpCam.Controls.Add(lblFacing); grpCam.Controls.Add(cmbCameraFacing);
 
         var lblSize = new Label { Text = "Size:", Location = new Point(10, 58), AutoSize = true };
         txtCameraSize = new TextBox { Location = new Point(100, 55), Size = new Size(110, 20) };
         SetCue(txtCameraSize, "e.g. 1920x1080");
-        toolTip.SetToolTip(txtCameraSize, "Capture resolution. Use 'Ask scrcpy' on the Control and other tab "
-            + "to list the sizes your phone supports.");
         var lblFps = new Label { Text = "FPS:", Location = new Point(230, 58), AutoSize = true };
         txtCameraFps = new TextBox { Location = new Point(270, 55), Size = new Size(60, 20) };
         SetCue(txtCameraFps, "e.g. 30");
         var lblAr = new Label { Text = "Aspect ratio:", Location = new Point(350, 58), AutoSize = true };
         txtCameraAr = new TextBox { Location = new Point(430, 55), Size = new Size(65, 20) };
         SetCue(txtCameraAr, "e.g. 16:9");
-        toolTip.SetToolTip(txtCameraAr, "Aspect ratio: 16:9, 4:3, or a number such as 1.6. "
-            + "Applied by cropping what is left over.");
         grpCam.Controls.Add(lblSize); grpCam.Controls.Add(txtCameraSize);
         grpCam.Controls.Add(lblFps); grpCam.Controls.Add(txtCameraFps);
         grpCam.Controls.Add(lblAr); grpCam.Controls.Add(txtCameraAr);
@@ -370,12 +361,8 @@ public class LauncherForm : Form
         var lblZoom = new Label { Text = "Zoom:", Location = new Point(10, 90), AutoSize = true };
         txtCameraZoom = new TextBox { Location = new Point(100, 87), Size = new Size(60, 20) };
         SetCue(txtCameraZoom, "e.g. 2.0");
-        toolTip.SetToolTip(txtCameraZoom, "Optical/digital zoom level. 1.0 is no zoom.");
         cbCameraHighSpeed = new CheckBox { Text = "High speed", Location = new Point(190, 89), AutoSize = true };
-        toolTip.SetToolTip(cbCameraHighSpeed, "Enables the phone's high frame rate recording mode. "
-            + "It heavily restricts the supported sizes and fps.");
         cbCameraTorch = new CheckBox { Text = "Torch on", Location = new Point(330, 89), AutoSize = true };
-        toolTip.SetToolTip(cbCameraTorch, "Turns the flash on as a continuous light for as long as the capture lasts.");
         grpCam.Controls.Add(lblZoom); grpCam.Controls.Add(txtCameraZoom);
         grpCam.Controls.Add(cbCameraHighSpeed);
         grpCam.Controls.Add(cbCameraTorch);
@@ -397,13 +384,6 @@ public class LauncherForm : Form
         SetCue(txtBitrate, "e.g. 8M");
         SetCue(txtMaxFps, "e.g. 30");
         SetCue(txtCrop, "e.g. 1080:1920:0:0");
-        toolTip.SetToolTip(txtMaxSize, "Limits the maximum width and height of the image in pixels (the other side adjusts on its own to keep the ratio).\nLower value = smoother but worse looking. Empty = no limit.");
-        toolTip.SetToolTip(txtBitrate, "Video quality/weight: a number followed by K (thousands) or M (millions) of bits per second.\nDefaults to 8M. For WiFi with a weak signal, try 2M.");
-        toolTip.SetToolTip(txtMaxFps, "Maximum frames per second of the capture. Empty = no limit. Typical values: 30 or 60.");
-        toolTip.SetToolTip(txtCrop, "Crops the screen that is sent. Format: width:height:x:y in pixels, relative to the natural orientation of the phone (usually portrait).");
-        toolTip.SetToolTip(cmbVideoCodec, "Codec the phone uses to compress the image. If you pick nothing, scrcpy uses its default (h264).");
-        toolTip.SetToolTip(cmbVideoSource, "What to capture: 'display' is the normal screen. 'camera' uses one of the phone cameras instead of the screen (requires Android 12+).");
-        toolTip.SetToolTip(cmbDisplayOrientation, "Rotates or flips the displayed image. The numbers are degrees of clockwise rotation; 'flip' mirrors it.");
     }
 
     private void BuildAudioTab()
@@ -432,9 +412,6 @@ public class LauncherForm : Form
         pnl.Controls.Add(grpAudio);
 
         SetCue(txtAudioBitrate, "e.g. 128K");
-        toolTip.SetToolTip(cmbAudioSource, "Where the audio comes from: 'output' is all the sound of the phone (the default), 'mic' is the microphone, and so on.");
-        toolTip.SetToolTip(cmbAudioCodec, "Audio compression format. Defaults to 'opus'.");
-        toolTip.SetToolTip(txtAudioBitrate, "Audio quality: a number followed by K or M. Defaults to 128K.");
     }
 
     private void BuildWindowTab()
@@ -449,7 +426,6 @@ public class LauncherForm : Form
         rbReadOnly = new RadioButton { Text = "Read-only (no control)", Location = new Point(370, 30), AutoSize = true };
         grpMode.Controls.Add(rbNormal); grpMode.Controls.Add(rbFullscreen);
         grpMode.Controls.Add(rbBorderless); grpMode.Controls.Add(rbReadOnly);
-        toolTip.SetToolTip(rbReadOnly, "Mirrors the phone without sending it any click or keystroke.");
         pnl.Controls.Add(grpMode);
 
         // --- Position and title ---
@@ -465,10 +441,6 @@ public class LauncherForm : Form
         txtWindowHeight = new TextBox { Location = new Point(428, 23), Size = new Size(60, 20) };
         SetCue(txtWindowX, "e.g. 0"); SetCue(txtWindowY, "e.g. 0");
         SetCue(txtWindowWidth, "e.g. 1280"); SetCue(txtWindowHeight, "e.g. 720");
-        string posHelp = "Position and size of the window when it opens, in pixels. Handy to keep it "
-                       + "always in the same place and capture it in OBS without moving it every time.";
-        toolTip.SetToolTip(txtWindowX, posHelp); toolTip.SetToolTip(txtWindowY, posHelp);
-        toolTip.SetToolTip(txtWindowWidth, posHelp); toolTip.SetToolTip(txtWindowHeight, posHelp);
         grpWindow.Controls.Add(lblWx); grpWindow.Controls.Add(txtWindowX);
         grpWindow.Controls.Add(lblWy); grpWindow.Controls.Add(txtWindowY);
         grpWindow.Controls.Add(lblWw); grpWindow.Controls.Add(txtWindowWidth);
@@ -477,13 +449,9 @@ public class LauncherForm : Form
         var lblWt = new Label { Text = "Title:", Location = new Point(10, 58), AutoSize = true };
         txtWindowTitle = new TextBox { Location = new Point(85, 55), Size = new Size(240, 20) };
         SetCue(txtWindowTitle, "e.g. Phone (OBS)");
-        toolTip.SetToolTip(txtWindowTitle, "Text of the title bar. Helps to tell the window apart "
-            + "when several are open, and to select it by title in OBS.");
         grpWindow.Controls.Add(lblWt); grpWindow.Controls.Add(txtWindowTitle);
 
         cbNoWindow = new CheckBox { Text = "No window (--no-window)", Location = new Point(10, 85), AutoSize = true };
-        toolTip.SetToolTip(cbNoWindow, "Opens no window at all. Only makes sense together with recording "
-            + "or with OTG control: otherwise you will see nothing.");
         grpWindow.Controls.Add(cbNoWindow);
 
         pnl.Controls.Add(grpWindow);
@@ -494,20 +462,14 @@ public class LauncherForm : Form
         var lblSa = new Label { Text = "Start app:", Location = new Point(10, 26), AutoSize = true };
         txtStartApp = new TextBox { Location = new Point(95, 23), Size = new Size(230, 20) };
         SetCue(txtStartApp, "e.g. org.videolan.vlc");
-        toolTip.SetToolTip(txtStartApp, "Launches that app on the phone when connecting. Takes the package name. "
-            + "With a leading '?' it searches by name (e.g. ?VLC). 'Ask scrcpy' can list them.");
         grpApps.Controls.Add(lblSa); grpApps.Controls.Add(txtStartApp);
 
         var lblNd = new Label { Text = "New display:", Location = new Point(10, 56), AutoSize = true };
         txtNewDisplay = new TextBox { Location = new Point(110, 53), Size = new Size(130, 20) };
         SetCue(txtNewDisplay, "e.g. 1920x1080");
-        toolTip.SetToolTip(txtNewDisplay, "Creates a new virtual display on the phone instead of mirroring the real one. "
-            + "Format: width x height, optionally /dpi (e.g. 1920x1080/240). Empty = default size.");
         var lblDi = new Label { Text = "or existing display (id):", Location = new Point(260, 56), AutoSize = true };
         txtDisplayId = new TextBox { Location = new Point(410, 53), Size = new Size(60, 20) };
         SetCue(txtDisplayId, "e.g. 0");
-        toolTip.SetToolTip(txtDisplayId, "Mirrors a specific display of the phone. 'Ask scrcpy' lists the available "
-            + "ids. Cannot be combined with 'New display'.");
         grpApps.Controls.Add(lblNd); grpApps.Controls.Add(txtNewDisplay);
         grpApps.Controls.Add(lblDi); grpApps.Controls.Add(txtDisplayId);
 
@@ -526,26 +488,18 @@ public class LauncherForm : Form
         var grp = new GroupBox { Text = "Record the session to a file", Location = new Point(6, 6), Size = new Size(560, 160) };
 
         cbRecord = new CheckBox { Text = "Record this session", Location = new Point(10, 25), AutoSize = true };
-        toolTip.SetToolTip(cbRecord, "Saves the session to a file named with the date and time, in the "
-            + "Recordings folder next to the .exe.");
         grp.Controls.Add(cbRecord);
 
         var lblRf = new Label { Text = "Format:", Location = new Point(10, 58), AutoSize = true };
         cmbRecordFormat = NewCombo(new[] { "mp4", "mkv", "m4a", "mka", "opus", "aac", "flac", "wav" }, new Point(75, 55), 100);
-        toolTip.SetToolTip(cmbRecordFormat, "Format of the recorded file. By default it is inferred from the "
-            + "file extension (.mp4). The audio-only ones (m4a, opus, flac, wav) require video to be disabled.");
         var lblRo = new Label { Text = "Orientation:", Location = new Point(210, 58), AutoSize = true };
         cmbRecordOrientation = NewCombo(new[] { "0", "90", "180", "270", "flip0", "flip90", "flip180", "flip270" }, new Point(295, 55), 120);
-        toolTip.SetToolTip(cmbRecordOrientation, "Rotation applied to the recorded file. It does not affect what you "
-            + "see on screen, only the recording.");
         grp.Controls.Add(lblRf); grp.Controls.Add(cmbRecordFormat);
         grp.Controls.Add(lblRo); grp.Controls.Add(cmbRecordOrientation);
 
         var lblTl = new Label { Text = "Time limit (s):", Location = new Point(10, 90), AutoSize = true };
         txtTimeLimit = new TextBox { Location = new Point(110, 87), Size = new Size(60, 20) };
         SetCue(txtTimeLimit, "e.g. 600");
-        toolTip.SetToolTip(txtTimeLimit, "Stops the session automatically after this many seconds, recording or not. "
-            + "Handy for fixed-length recordings.");
         grp.Controls.Add(lblTl); grp.Controls.Add(txtTimeLimit);
 
         // The button that opens the folder belongs next to the setting that fills it.
@@ -628,16 +582,12 @@ public class LauncherForm : Form
         cmbTools.SelectedIndex = 0;
         btnRunTool = new Button { Text = "Run", Location = new Point(440, 83), Size = new Size(100, 25) };
         btnRunTool.Click += (s, e) => RunTool();
-        toolTip.SetToolTip(cmbTools, "Runs scrcpy just to ask it something and prints the answer in the log. "
-            + "Nothing is mirrored and no setting on any tab is used.");
         grpOther.Controls.Add(lblTools); grpOther.Controls.Add(cmbTools); grpOther.Controls.Add(btnRunTool);
 
         pnl.Controls.Add(grpOther);
 
         btnClearAdvanced = new Button { Text = "Clear every option", Location = new Point(6, 287), Size = new Size(200, 26) };
         btnClearAdvanced.Click += (s, e) => ClearAdvanced();
-        toolTip.SetToolTip(btnClearAdvanced, "Resets every field on every tab except the connection, so nothing is "
-            + "left set on a tab you are not looking at.");
         pnl.Controls.Add(btnClearAdvanced);
 
         lblExtra = new Label { Text = "Extra flags not listed anywhere above (appended as typed):", Location = new Point(6, 321), AutoSize = true };
@@ -647,11 +597,200 @@ public class LauncherForm : Form
         pnl.Controls.Add(txtExtra);
 
         SetCue(txtExtra, "e.g. --push-target=/sdcard/Download/");
-        toolTip.SetToolTip(cmbKeyboard, "How key presses are sent to the phone.\n'sdk' = normal, recommended. 'uhid'/'aoa' simulate a physical keyboard, for special cases only.");
-        toolTip.SetToolTip(cmbMouse, "How mouse clicks and movements are sent to the phone.\n'sdk' = normal, recommended.");
-        toolTip.SetToolTip(cmbGamepad, "How the buttons of a physical controller plugged into the PC are sent. Requires a controller to be connected.");
-        toolTip.SetToolTip(cmbVerbosity, "How much technical detail to show. It only affects the internal messages, not the image.");
-        toolTip.SetToolTip(txtExtra, "Type here any scrcpy flag exactly as you would in a terminal, for anything not covered above.\nSeveral can be given separated by spaces. Example: --push-target=/sdcard/Download/");
+    }
+
+    // Every interactive control gets a tooltip, and every tooltip has to say something the
+    // caption does not: one that just repeats the label teaches people to stop reading
+    // them. Where a control maps to a scrcpy flag the flag is named at the end, so the
+    // interface can be matched against scrcpy's own documentation and against the free
+    // flags field. They all live here rather than beside each control: one place to read,
+    // and nothing new can be added to a tab without the gap being obvious.
+    private void Tip(Control c, string text, string flag)
+    {
+        toolTip.SetToolTip(c, flag == null ? text : text + "\r\n\r\nscrcpy: " + flag);
+    }
+
+    private void Tip(Control c, string text)
+    {
+        Tip(c, text, null);
+    }
+
+    private void SetUpTooltips()
+    {
+        // --- Connection ---
+        Tip(rbUsb, "Uses the phone connected by cable. This is the reliable one: no pairing, "
+            + "no latency from the network.", "-d");
+        Tip(rbWifi, "Uses a phone already paired over the network, so no cable is needed. "
+            + "Pair it first with the button below, with the cable plugged in.", "-e");
+        Tip(btnConnectWifi, "Does the whole pairing in one go: puts the phone into TCP mode, finds "
+            + "its address on your network, and connects. The cable has to be plugged in for this, "
+            + "but not afterwards.");
+        Tip(btnLowLatencyPreset, "Fills in bitrate, size and fps on the Video tab with values that "
+            + "cope with a weak signal. Nothing hidden: every value it sets is visible and editable "
+            + "there, and you can change any of them afterwards.");
+        Tip(btnRestartAdb, "Stops and starts the adb server. The thing to try first when the phone "
+            + "stops being detected, or shows up as unauthorised after replugging it.");
+        Tip(btnStopAdb, "Stops the adb server and leaves it stopped, releasing the phone. Note it "
+            + "comes back by itself the moment anything needs it again.");
+
+        // --- Video ---
+        Tip(cbNoVideo, "Captures no image at all. For recording sound only, or for controlling the "
+            + "phone blind over OTG. With this on, the recording format has to be an audio one.",
+            "--no-video");
+        Tip(cbNoVideoPlayback, "Still captures the image but does not draw it on the PC. What you "
+            + "want when recording to a file and the window would only waste CPU.",
+            "--no-video-playback");
+        Tip(txtMaxSize, "Limits the maximum width and height of the image in pixels (the other side "
+            + "adjusts on its own to keep the ratio).\r\nLower value = smoother but worse looking. "
+            + "Empty = no limit.", "-m");
+        Tip(txtBitrate, "Video quality and weight: a number followed by K (thousands) or M "
+            + "(millions) of bits per second.\r\nDefaults to 8M. For WiFi with a weak signal, "
+            + "try 2M.", "-b");
+        Tip(txtMaxFps, "Maximum frames per second of the capture. Empty = no limit. Typical values: "
+            + "30 or 60. Lowering it is the cheapest way to save bandwidth.", "--max-fps");
+        Tip(txtCrop, "Crops the screen that is sent. Format: width:height:x:y in pixels, relative "
+            + "to the natural orientation of the phone (usually portrait).", "--crop");
+        Tip(cmbVideoCodec, "Codec the phone uses to compress the image. Leave it alone unless you "
+            + "have a reason: scrcpy's default (h264) is the most widely supported.", "--video-codec");
+        Tip(cmbVideoSource, "What to capture: 'display' is the normal screen. 'camera' uses one of "
+            + "the phone cameras instead of the screen, which is what turns it into a webcam "
+            + "(requires Android 12+).", "--video-source");
+        Tip(cmbDisplayOrientation, "Rotates or flips the image you see. The numbers are degrees of "
+            + "clockwise rotation; 'flip' mirrors it. Does not affect a recording — that has its "
+            + "own setting on the Recording tab.", "--display-orientation");
+
+        Tip(txtCameraId, "Id of the camera to use. 'Ask scrcpy' on the Control and other tab lists "
+            + "them. If you set this, leave 'Facing' alone.", "--camera-id");
+        Tip(cmbCameraFacing, "Picks the camera by its position instead of by id: front, back or "
+            + "external. Cannot be combined with 'Camera id'.", "--camera-facing");
+        Tip(txtCameraSize, "Capture resolution. Cameras only accept certain sizes: use 'Ask scrcpy' "
+            + "on the Control and other tab to list the ones yours supports.", "--camera-size");
+        Tip(txtCameraFps, "Frames per second the camera captures at. Like the size, only certain "
+            + "values are accepted, and 'Ask scrcpy' lists them next to each size.", "--camera-fps");
+        Tip(txtCameraAr, "Aspect ratio: 16:9, 4:3, or a number such as 1.6. Applied by cropping "
+            + "what is left over, so you lose part of the frame.", "--camera-ar");
+        Tip(txtCameraZoom, "Optical or digital zoom level. 1.0 is no zoom. How far it goes depends "
+            + "on the lens.", "--camera-zoom");
+        Tip(cbCameraHighSpeed, "Enables the phone's high frame rate recording mode. It heavily "
+            + "restricts which sizes and fps are accepted, so expect to have to pick from a much "
+            + "shorter list.", "--camera-high-speed");
+        Tip(cbCameraTorch, "Turns the flash on as a continuous light for as long as the capture "
+            + "lasts, not as a flash.", "--camera-torch");
+
+        // --- Audio ---
+        Tip(cbNoAudio, "Captures no sound at all. Useful when you only want the picture, or when "
+            + "the phone is too old to support audio forwarding (it needs Android 11+).",
+            "--no-audio");
+        Tip(cbNoAudioPlayback, "Still captures the sound but does not play it on the PC. What you "
+            + "want when recording audio to a file and you do not need to hear it live.",
+            "--no-audio-playback");
+        Tip(cbAudioDup, "Plays the sound on the PC and leaves it coming out of the phone too. "
+            + "Without this, capturing the audio takes it away from the phone speaker.",
+            "--audio-dup");
+        Tip(cmbAudioSource, "Where the sound comes from: 'output' is everything the phone plays "
+            + "(the default), 'mic' is the microphone, and the rest are specific recording sources.",
+            "--audio-source");
+        Tip(cmbAudioCodec, "Audio compression format. Defaults to 'opus'. Use 'aac' if whatever "
+            + "you feed the recording into does not understand opus.", "--audio-codec");
+        Tip(txtAudioBitrate, "Audio quality: a number followed by K or M. Defaults to 128K, which "
+            + "is plenty for speech.", "--audio-bit-rate");
+
+        // --- Window ---
+        Tip(rbNormal, "A normal resizable window that you can click into to control the phone.");
+        Tip(rbFullscreen, "Opens filling the screen. Press F11 in the scrcpy window to come back "
+            + "out of it.", "-f");
+        Tip(rbBorderless, "No title bar and always on top, which is what makes it clean to capture "
+            + "in OBS: no chrome to crop out and nothing covering it.",
+            "--window-borderless --always-on-top");
+        Tip(rbReadOnly, "Mirrors the phone without sending it any click or keystroke. Safe for "
+            + "showing something without touching it by accident.", "-n");
+        string posHelp = "Position and size of the window when it opens, in pixels. Handy to keep "
+                       + "it always in the same place and capture it in OBS without moving it every "
+                       + "time.";
+        Tip(txtWindowX, posHelp, "--window-x");
+        Tip(txtWindowY, posHelp, "--window-y");
+        Tip(txtWindowWidth, posHelp, "--window-width");
+        Tip(txtWindowHeight, posHelp, "--window-height");
+        Tip(txtWindowTitle, "Text of the title bar. Helps to tell the window apart when several are "
+            + "open, and to select it by title in OBS.", "--window-title");
+        Tip(cbNoWindow, "Opens no window at all. Only makes sense together with recording or with "
+            + "OTG control: otherwise you will see nothing.", "--no-window");
+        Tip(txtStartApp, "Launches that app on the phone when connecting. Takes the package name. "
+            + "With a leading '?' it searches by name (e.g. ?VLC). 'Ask scrcpy' can list them.",
+            "--start-app");
+        Tip(txtNewDisplay, "Creates a new virtual display on the phone instead of mirroring the "
+            + "real one, so the phone screen stays free for something else. Format: width x height, "
+            + "optionally /dpi (e.g. 1920x1080/240). Empty = default size.", "--new-display");
+        Tip(txtDisplayId, "Mirrors a specific display of the phone. 'Ask scrcpy' lists the available "
+            + "ids. Cannot be combined with 'New display'.", "--display-id");
+
+        // --- Recording ---
+        Tip(cbRecord, "Saves the session to a file named with the date and time, in the Recordings "
+            + "folder next to the .exe. The mirror window still works as usual while it records.",
+            "-r");
+        Tip(cmbRecordFormat, "Format of the recorded file. By default it follows the .mp4 extension "
+            + "of the automatic name. The audio-only ones (m4a, opus, flac, wav) need video "
+            + "disabled on the Video tab.", "--record-format");
+        Tip(cmbRecordOrientation, "Rotation baked into the recorded file. It does not affect what "
+            + "you see on screen, only what ends up saved.", "--record-orientation");
+        Tip(txtTimeLimit, "Stops the session automatically after this many seconds, recording or "
+            + "not. Handy for fixed-length captures you do not want to sit and watch.",
+            "--time-limit");
+        Tip(btnRecordings, "Opens the folder the recordings are saved to, next to the .exe. "
+            + "It is created the first time you record.");
+
+        // --- Control and other ---
+        Tip(cbShowTouches, "Makes the phone draw a circle wherever it is touched, including your "
+            + "clicks from the PC. Meant for demos and screencasts. It changes a setting on the "
+            + "phone itself, which scrcpy puts back on exit.", "-t");
+        Tip(cbStayAwake, "Stops the phone screen turning off while it is plugged in and mirroring. "
+            + "Only works over USB.", "-w");
+        Tip(cbOtg, "Turns the PC into a keyboard and mouse for the phone over USB, with no mirroring "
+            + "at all — there is nothing to see, only to control. Works even without adb debugging.",
+            "--otg");
+        Tip(cbTurnScreenOff, "Turns the phone screen off while you keep controlling it from the PC. "
+            + "Saves battery and keeps whatever you are doing off the phone's own display.", "-S");
+        Tip(cbPowerOffOnClose, "Turns the phone screen off when the mirror window closes, instead of "
+            + "leaving it lit.", "--power-off-on-close");
+        Tip(cbNoPowerOn, "Leaves the phone asleep when connecting. Without this, starting a mirror "
+            + "wakes the phone up.", "--no-power-on");
+        Tip(cbKeepActive, "Keeps the phone from going idle by pretending there is activity, even "
+            + "with the screen off.", "--keep-active");
+        Tip(cmbKeyboard, "How key presses reach the phone.\r\n'sdk' is the normal one and what you "
+            + "want. 'uhid' and 'aoa' pretend to be a physical keyboard, which fixes layout problems "
+            + "but needs the phone to accept it.", "--keyboard");
+        Tip(cmbMouse, "How clicks and mouse movement reach the phone.\r\n'sdk' is the normal one. "
+            + "'uhid' and 'aoa' pretend to be a physical mouse and give you a pointer on the phone "
+            + "itself.", "--mouse");
+        Tip(cmbGamepad, "Forwards a controller plugged into the PC to the phone. Requires a "
+            + "controller to actually be connected; 'disabled' is the default.", "--gamepad");
+        Tip(cmbVerbosity, "How much technical detail scrcpy prints into the log. Raise it to 'debug' "
+            + "when something fails and you want to know why. It changes nothing about the image.",
+            "-V");
+        Tip(cbPrintFps, "Prints the frame rate into the log while running. A way to tell whether a "
+            + "stutter is the capture or the network.", "--print-fps");
+        Tip(cbNoClipboardSync, "Stops the phone and the PC sharing what you copy. Turn it on if you "
+            + "would rather the phone did not see your clipboard.", "--no-clipboard-autosync");
+        Tip(cbKillAdbOnClose, "Has scrcpy stop the adb server when the mirror closes. Note this app "
+            + "already leaves adb as it found it, so you rarely need this.", "--kill-adb-on-close");
+        Tip(cmbTools, "Runs scrcpy just to ask it something and prints the answer in the log. "
+            + "Nothing is mirrored and no setting on any tab is used.");
+        Tip(btnRunTool, "Asks the phone the question selected on the left and writes the answer to "
+            + "the log. The phone has to be connected.");
+        Tip(btnClearAdvanced, "Resets every field on every tab except the connection, so nothing is "
+            + "left set on a tab you are not looking at.");
+        Tip(txtExtra, "Type here any scrcpy flag exactly as you would in a terminal, for anything "
+            + "not covered above. Several can be given separated by spaces.\r\n"
+            + "Example: --push-target=/sdcard/Download/");
+
+        // --- Outside the tabs ---
+        Tip(btnStart, "Launches the mirror with everything set on the tabs. The exact command is "
+            + "written to the log, so you can always see what was actually run.");
+        Tip(btnStop, "Closes the running scrcpy. Does not touch the adb server or the phone.");
+        Tip(btnRefresh, "Asks adb which devices are connected and updates the status. Starts the "
+            + "adb server if it is not already running.");
+        Tip(txtLog, "What this app and scrcpy have to say: the command launched, the devices found, "
+            + "answers from 'Ask scrcpy', and any error. Drag the divider above to make it taller.");
     }
 
     private void ClearAdvanced()

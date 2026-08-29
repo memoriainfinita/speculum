@@ -42,8 +42,10 @@ press every time: **Start / Stop scrcpy**, the current status, and a **Refresh**
 with the log underneath — small by default, and draggable by its divider when something
 needs reading. Launching a mirror never requires opening a tab at all.
 
-Every text field shows an example inside it (e.g. `e.g. 8M`) and a full explanation on
-hover, so there is no flag to memorise.
+Every control has an explanation on hover — what it actually does, when you would want it,
+and the caveat if there is one — ending with the scrcpy flag it maps to, so the interface
+can be matched against scrcpy's own documentation. Text fields also show an example inside
+them (e.g. `e.g. 8M`). There is no flag to memorise.
 
 ### Connection
 

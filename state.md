@@ -72,9 +72,9 @@ Note for scripted builds: run it from PowerShell, not from Git Bash. Git Bash re
 'C:/Program Files/Git/nologo' could not be found`.
 
 ## What the interface does
-Six tabs, one per thing you configure. Every free text field has a visible example inside
-it (e.g. "8M") and a tooltip with the full explanation on hover, so no flag has to be typed
-from memory.
+Six tabs, one per thing you configure. Every interactive control has a tooltip on hover,
+ending with the scrcpy flag it maps to, and every free text field also shows an example
+inside it (e.g. "8M"), so no flag has to be typed from memory.
 
 - **Connection**: USB or WiFi, the automatic WiFi pairing button, the low-latency preset,
   and the adb server buttons.
@@ -123,6 +123,17 @@ from memory.
   (camera included, in a group under the source), Audio, Window, Recording, Control and
   other. The everyday path never needed the tabs anyway, since Start, Stop, Recordings and
   the ADB buttons are fixed below them.
+- **A tooltip on every control, and every tooltip earns its place**: coverage used to be
+  59% (41 of 69), and which controls had one was down to whoever wrote them. All of them do
+  now, and they live in one `SetUpTooltips()` rather than beside each control: one place to
+  read, and nothing can be added to a tab without the gap being obvious. Two rules. A
+  tooltip that repeats the caption is worse than none, because it teaches people to stop
+  reading them, so each says what the control actually does, when you would want it, or the
+  catch — "Duplicate audio" is not "duplicates the audio" but "plays it on the PC and
+  leaves it coming out of the phone too; without this, capturing the audio takes it away
+  from the speaker". And each ends with the scrcpy flag, since the app wraps a command line
+  tool and the flag is the bridge to scrcpy's own documentation and to the free flags
+  field. Buttons that are the app's own, like Start or Refresh, carry no flag.
 - **Examples + tooltips on the text fields**: it was still unclear what format each field
   expected (bitrate, crop, etc.). A cue banner was added (the native Windows placeholder
   via `EM_SETCUEBANNER`) plus a `ToolTip` with the long explanation.
@@ -381,6 +392,19 @@ Found in the code review of 2026-08-28, before publishing the repo.
   label, and the check was confirmed against the old dimensions before trusting it.
 - [x] **Release `v1.2.0`** published 2026-08-29 with both interface changes, 87,552 bytes,
   SHA256 `F6A64D50...684C938D`, checked against the digest GitHub reports for the asset.
+- [x] **Tooltips everywhere.** Done 2026-08-29. An audit of the real form found 59%
+  coverage: 41 controls with a tooltip and 28 without, including the camera FPS field, which
+  had an example inside it but had never had an explanation. All 69 have one now, written to
+  the two rules in the design decision above, and the 41 existing ones were rewritten to
+  match — mostly to append the flag.
+
+  Centralised into `SetUpTooltips()`, called after the bottom strip is built, not after the
+  tabs: `btnStart`, `btnStop`, `btnRefresh` and `txtLog` are created with the strip, and
+  calling it any earlier passes null to `SetToolTip` and the form throws on construction.
+
+  The check suite now fails if any interactive control has no tooltip, or if its tooltip is
+  just the caption again. The audit doubles as its own positive control: the same
+  measurement reported 28 missing before the change and 0 after.
 - [x] **Bottom strip reworked.** Done 2026-08-29, right after the tabs and for the same
   reason — see the design decision above. Layout is now docked rather than positioned by
   hand: the tabs `Dock = Fill`, a `Splitter` and the strip `Dock = Bottom`, with the form's
