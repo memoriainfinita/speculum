@@ -77,6 +77,8 @@ scrcpy captures video, not the screen.
 Source, codec and bitrate, or no audio at all. Audio can also be captured without playing
 it back on the PC, which is what you want when recording.
 
+![Audio tab: no audio, no playback on PC, duplicate audio, source, codec and bitrate](docs/tab-audio.png)
+
 ### Window
 
 How the mirror window opens — normal, fullscreen, borderless (to capture in OBS), or
@@ -95,6 +97,8 @@ new virtual display, or mirror a specific display by its id.
 Record the session to a file, its format and rotation, and a time limit that stops the
 session on its own. Files are named with the date and time and go to the `Recordings`
 folder next to the `.exe`, and the button on this tab opens it.
+
+![Recording tab: record the session, format, orientation, time limit and the Recordings folder button](docs/tab-recording.png)
 
 ### Control and other
 
