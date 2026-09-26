@@ -12,7 +12,7 @@ terminal or have to remember command line flags.
 ![license](https://img.shields.io/badge/license-GPL_v3-blue)
 ![platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
-![Speculum Connection tab: USB or WiFi, pairing, and the log](docs/tab-connection.png)
+![Speculum Connection tab: USB or WiFi, pairing, and the log](docs/speculum-demo.png)
 
 ## Requirements
 
